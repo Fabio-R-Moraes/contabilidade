@@ -69,13 +69,14 @@ class Nota(Base):
     contaCredito = models.ForeignKey('contabilidade.Conta', related_name='Credito', verbose_name='Conta Crédito', on_delete=models.CASCADE, default=0)
     contaDebito = models.ForeignKey('contabilidade.Conta', related_name='Debito', verbose_name='Conta Débito', on_delete=models.CASCADE, default=0)
     valor = models.DecimalField('Valor', max_digits=9, decimal_places=2)
+    descricao = models.TextField('Descrição', max_length=200, default='Vlr. ref. ')
     imprimir = models.BooleanField('Imprimir?', default=True)
 
     class Meta:
         verbose_name = 'Nota'
         verbose_name_plural = 'Notas'
 
-    def __str__(self):
+    def __date__(self):
         return self.dataNota
 
 class Razao(Base):

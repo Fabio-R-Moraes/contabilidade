@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -8,5 +9,8 @@
 </head>
 <body>
     <h1>Index</h1>
+    {% for n in NotasHoje %}
+        <p>{{ n.dataNota }} - {{ n.contaCredito }} - {{ n.contaDebito }} - {{ n.valor }}</p>
+    {% endfor %}
 </body>
 </html>
