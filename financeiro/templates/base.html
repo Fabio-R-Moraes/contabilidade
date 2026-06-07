@@ -7,7 +7,10 @@
     <title>{% block title %}Finança Familiar{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.0/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{% static '/css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'contabilidade/css/styles.css' %}">
+
+    <!-- Ícone do site -->
+    <link rel="icon" href="{% static 'contabilidade/images/contabilidade.ico' %}" type="image/x-icon">
     {% block extra_css %}{% endblock %}
 </head>
 <body>
@@ -23,10 +26,10 @@
                     <i class="bi bi-speedometer2 me-2"></i>Dashboard
                 </a>
                 <div class="nav-section">Contas</div>
-                <a href="#" class="nav-link {% if 'conta_credora' in request.resolver_match.url_name %}active{% endif %}">
+                <a href="{% url 'financeiro:conta_credora_list' %}" class="nav-link {% if 'conta_credora' in request.resolver_match.url_name %}active{% endif %}">
                     <i class="bi bi-bank me-2"></i>Contas Credoras
                 </a>
-                <a href="#" class="nav-link {% if 'conta_devedora' in request.resolver_match.url_name %}active{% endif %}">
+                <a href="{% url 'financeiro:conta_devedora_list' %}" class="nav-link {% if 'conta_devedora' in request.resolver_match.url_name %}active{% endif %}">
                     <i class="bi bi-credit-card me-2"></i>Contas Devedoras
                 </a>
                 <div class="nav-section">Movimentações</div>

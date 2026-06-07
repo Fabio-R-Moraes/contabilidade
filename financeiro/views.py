@@ -77,4 +77,105 @@ class DashboardView(LoginRequiredMixin, TemplateView):
 
         return ctx
     
+#Contas Credoras
+class ContaCredoraListView(LoginRequiredMixin, ListView):
+    model = ContaCredora
+    template_name = 'conta_credora/list.html'
+    context_object_name = 'contas'
+    login_url = reverse_lazy('financeiro:login')
+
+    def get_queryset(self):
+        return ContaCredora.objects.filter(usuario=self.request.user)
     
+class ContaCredoraCreateView(LoginRequiredMixin, CreateView):
+    model = ContaCredora
+    form_class = ContaCredoraForm
+    template_name = 'conta_credora/form.html'
+    success_url = reverse_lazy('financeiro:conta_credora_list')
+    login_url = reverse_lazy(':financeiro:login')
+
+    def form_valid(self, form):
+        form.instance.usuario = self.request.user
+        messages.success(self.request, 'Conta credora criada com sucesso!!!')
+        return super().form_valid(form)
+    
+class ContaCredoraUpdateView(LoginRequiredMixin, UpdateView):
+    model = ContaCredora
+    form_class = ContaCredoraForm
+    template_name = 'conta_credora/form.html'
+    success_url = reverse_lazy('financeiro:conta_credora_list')
+    login_url = reverse_lazy('financeiro:login')
+
+    def get_queryset(self):
+        return ContaCredora.objects.filter(usuario=self.request.user)
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Conta credora atualizada com sucesso!!!')
+        return super().form_valid(form)
+    
+class ContaCredoraDeleteView(LoginRequiredMixin, DeleteView):
+    model = ContaCredora
+    template_name = 'conta_credora/confirm_delete.html'
+    success_url = reverse_lazy('financeiro:conta_credora_list')
+    login_url = reverse_lazy('financeiro:login')
+
+    def get_queryset(self):
+        return ContaCredora.objects.filter(usuario=self.request.user)
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Conta credora removida!!!')
+        return super().form_valid(form)
+    
+#Contas Devedoras
+class ContaDevedoraListView(LoginRequiredMixin, ListView):
+    model = ContaDevedora
+    template_name = 'conta_devedora/list.html'
+    context_object_name = 'contas'
+    login_url = reverse_lazy('financeiro:login')
+
+    def get_queryset(self):
+        return ContaDevedora.objects.filter(usuario=self.request.user)
+    
+class ContaDevedoraCreateView(LoginRequiredMixin, CreateView):
+    model = ContaDevedora
+    form_class = ContaDevedoraForm
+    template_name = 'conta_devedora/form.html'
+    success_url = reverse_lazy('financeiro:conta_devedora_list')
+    login_url = reverse_lazy(':financeiro:login')
+
+    def form_valid(self, form):
+        form.instance.usuario = self.request.user
+        messages.success(self.request, 'Conta devedora criada com sucesso!!!')
+        return super().form_valid(form)
+    
+class ContaDevedoraUpdateView(LoginRequiredMixin, UpdateView):
+    model = ContaDevedora
+    form_class = ContaDevedoraForm
+    template_name = 'conta_devedora/form.html'
+    success_url = reverse_lazy('financeiro:conta_devedora_list')
+    login_url = reverse_lazy('financeiro:login')
+
+    def get_queryset(self):
+        return ContaDevedora.objects.filter(usuario=self.request.user)
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Conta devedora atualizada com sucesso!!!')
+        return super().form_valid(form)
+    
+class ContaDevedoraDeleteView(LoginRequiredMixin, DeleteView):
+    model = ContaDevedora
+    template_name = 'conta_devedora/confirm_delete.html'
+    success_url = reverse_lazy('financeiro:conta_devedora_list')
+    login_url = reverse_lazy('financeiro:login')
+
+    def get_queryset(self):
+        return ContaDevedora.objects.filter(usuario=self.request.user)
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Conta devedora removida!!!')
+        return super().form_valid(form)  
+
+#Lancamentos
+class LancamentoListView(LoginRequiredMixin, ListView):
+    model = Lancamento
+    template_name = 'lancamento/list.html'             

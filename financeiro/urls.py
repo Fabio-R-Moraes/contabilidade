@@ -10,4 +10,17 @@ urlpatterns = [
     path('login/', views.CustomLoginView.as_view(), name='login'),
     path('logout/', LogoutView.as_view(next_page='financeiro:login'), name='logout'),
     path('registro/', views.RegistroView.as_view(), name='registro'),
+
+    #Contas Credoras
+    path('contas/credoras/', views.ContaCredoraListView.as_view(), name='conta_credora_list'),
+    path('contas/credoras/nova/', views.ContaCredoraCreateView.as_view(), name='conta_credora_create'),
+    path('contas/credoras/<int:pk>/editar/', views.ContaCredoraUpdateView.as_view(), name='conta_credora_update'),
+    path('contas/credoras/<int:pk>/excluir/', views.ContaCredoraDeleteView.as_view(), name='conta_credora_delete'),
+
+    #Contas Devedoras
+    path('contas/devedoras/', views.ContaDevedoraListView.as_view(), name='conta_devedora_list'),
+    path('contas/devedoras/nova/', views.ContaDevedoraCreateView.as_view(), name='conta_devedora_create'),
+    path('contas/devedoras/<int:pk>/editar/', views.ContaDevedoraUpdateView.as_view(), name='conta_devedora_update'),
+    path('contas/devedoras/<int:pk>/excluir/', views.ContaDevedoraDeleteView.as_view(), name='conta_devedora_delete'),
+
 ]

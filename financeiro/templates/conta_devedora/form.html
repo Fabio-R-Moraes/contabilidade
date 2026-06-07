@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}{% if object %}Editar{% else %}Nova{% endif %} Conta Devedora{% endblock %}
+{% block page_title %}{% if object %}Editar{% else %}Nova{% endif %} Conta Devedora{% endblock %}
+{% block content %}
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        {% for field in form %}
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">{{ field.label }}</label>
+                                {{ field }}
+                                {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors }}</div>{% endif %}
+                            </div>
+                        {% endfor %}
+                        <div class="d-flex-gap-2">
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-check-circle me-1"></i>Salvar
+                            </button>
+                            <a href="{% url 'financeiro:conta_devedora_list' %}" class="btn btn-outline-secondaary">Cancelar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
