@@ -57,7 +57,7 @@
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <span><i class="bi bi-bank me-2"></i>Contas Credoras</span>
-                    <a href="#" class="btn btn-sm btn-success">
+                    <a href="{% url 'financeiro:conta_credora_create' %}" class="btn btn-sm btn-success">
                         <i class="bi bi-plus"></i>
                     </a>
                 </div>
@@ -81,7 +81,7 @@
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <span><i class="bi bi-credit-card me-2"></i>Contas Devedoras</span>
-                    <a href="#" class="btn btn-sm btn-danger">
+                    <a href="{% url 'financeiro:conta_devedora_create' %}" class="btn btn-sm btn-danger">
                         <i class="bi bi-plus"></i>
                     </a>
                 </div>
@@ -106,7 +106,7 @@
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <span><i class="bi bi-journal-text me-2"></i>Últimos Lançamentos</span>
-                    <a href="#" class="btn btn-sm btn-primary">
+                    <a href="{% url 'financeiro:lancamento_create' %}" class="btn btn-sm btn-primary">
                          <i class="bi bi-plus me-1"></i>Novo
                     </a>
                 </div>

@@ -178,4 +178,71 @@ class ContaDevedoraDeleteView(LoginRequiredMixin, DeleteView):
 #Lancamentos
 class LancamentoListView(LoginRequiredMixin, ListView):
     model = Lancamento
-    template_name = 'lancamento/list.html'             
+    template_name = 'lancamento/list.html'
+    context_object_name = 'lancamentos'
+    paginate_by = 20
+    login_url = reverse_lazy('financeiro:login')
+
+    def get_queryset(self):
+        qs = Lancamento.objects.filter(usuario=self.request.user).prefetch_related('partidas')
+        tipo = self.request.GET.get('tipo')
+
+        if tipo:
+            qs = qs.filter(tipo_dsespesa=tipo)
+
+        return qs
+    
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['tipo_choices'] = Lancamento.TIPO_DESPESA_CHOICES
+        ctx['tipo_atual'] = self.request.GET.get('tipo', '')
+
+        return ctx
+    
+class LancamentoDetailView(LoginRequiredMixin, DetailView):
+    model = Lancamento
+    template_name = 'lancamento/detail.html'
+    login_url = reverse_lazy('financeiro:login')
+
+    def get_queryset(self):
+        return Lancamento.objects.filter(usuario=self.request.user)
+    
+class LancamentoCreateView(LoginRequiredMixin, CreateView):
+    model = Lancamento
+    form_class = LancamentoForm
+    template_name = 'lancamento/form.html'
+    success_url = reverse_lazy('financeiro:lancamento_list')
+    login_url = reverse_lazy('financeiro:login')
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+
+        if self.request.POST:
+            ctx['formset'] = PartidaFormSet(
+                self.request.POST, 
+                user=self.request.user
+            )
+        else:
+            ctx['formset'] = PartidaFormSet(
+                user=self.request.user
+            )
+
+        return ctx
+    
+    def form_valid(self, form):
+        ctx = self.get_context_data()
+        formset = ctx['formset']
+
+        if formset.is_valid():
+            with transaction.atomic():
+                form.instance.usuario = self.request.user
+                self.object = form.save()
+                formset.instance = self.object
+                formset.save()
+
+            messages.success(self.request, 'Lançamento registrado com sucesso!!!')
+            return redirect(self.success_url)
+        else:
+            return super().form_invalid(form)
+    
+    

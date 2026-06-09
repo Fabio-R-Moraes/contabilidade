@@ -8,7 +8,14 @@ class ContaCredora(models.Model):
     usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='contas_credoras')
     nome = models.CharField(max_length=100)
     descricao = models.TextField(blank=True)
-    saldo = models.DecimalField(max_digits=9, decimal_places=2, default=Decimal('0.00'))
+    saldo_inicial = models.DecimalField(
+        max_digits=9, decimal_places=2, default=Decimal('0.00'), 
+        help_text='Saldo no momento do cadastro da conta. Não altere manualmente.'
+        )
+    saldo = models.DecimalField(
+        max_digits=9, decimal_places=2, default=Decimal('0.00'), 
+        help_text='Calculado automaticamente a partir das partidas.'
+        )
     ativa = models.BooleanField(default=True)
     criado_em = models.DateTimeField(auto_now_add=True)
     atualizado_em = models.DateTimeField(auto_now=True)
@@ -27,7 +34,14 @@ class ContaDevedora(models.Model):
     usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='contas_devedoras')
     nome = models.CharField(max_length=100)
     descricao = models.TextField(blank=True)
-    saldo = models.DecimalField(max_digits=9, decimal_places=2, default=Decimal('0.00'))
+    saldo_inicial = models.DecimalField(
+        max_digits=9, decimal_places=2, default=Decimal('0.00'), 
+        help_text='Saldo no momento do cadastro da conta. Não altere manualmente.'
+        )
+    saldo = models.DecimalField(
+        max_digits=9, decimal_places=2, default=Decimal('0.00'), 
+        help_text='Calculado automaticamente a partir das partidas.'
+        )
     limite = models.DecimalField(max_digits=9, decimal_places=2, null=True, blank=True)
     ativa = models.BooleanField(default=True)
     criado_em = models.DateTimeField(auto_now_add=True)
@@ -71,12 +85,12 @@ class Lancamento(models.Model):
         return f'{self.data} - {self.descricao}'
     
     def total_debitos(self):
-        return self.partidas.filter(tipo='DEBITO').aggregate(
+        return self.partidas.filter(tipo='DEBITO').aggregate( # type: ignore
             total = models.Sum('valor')
         )['total'] or Decimal('0.00')
 
     def total_creditos(self):
-        return self.partidas.filter(tipo='CREDITO').aggregate(
+        return self.partidas.filter(tipo='CREDITO').aggregate( # type: ignore
             total = models.Sum('valor')
         )['total'] or Decimal('0.00')
 

@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{% if object %}Editar{% else %}Novo{% endif %} Lançamento{% endblock %}
+{% block page_title %}{% if object %}Editar{% else %}Novo{% endif %} Lançamento{% endblock %}
+{% block content %}
+    <form id="lancamento-form" method="post">
+        {% csrf_token %}
+        <div class="row g-3">
+            <!-- Cabecalho do Lancamento -->
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header"><i class="bi bi-journal-plus me-2"></i>Dados do Lançamento</div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">{{ form.descricao.label }}</label>
+                                {{ form.descricao }}
+                                {% if form.descricao.errors %}<div class="text-danger small">{{ form.descricao.errors }}</div>{% endif %}
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold">{{ form.data.label }}</label>
+                                {{ form.data }}
+                                {% if form.data.errors %}<div class="text-danger small">{{ form.data.errors }}</div>{% endif %}
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold">{{ form.tipo_despesa.label }}</label>
+                                {{ form.tipo_despesa }}
+                                {% if form.tipo_despesa.errors %}<div class="text-danger small">{{ form.tipo_despesa.errors }}</div>{% endif %}
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-semibold">{{ form.observacoes.label }}</label>
+                                {{ form.observacoes }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Indicador de Balaceamento -->
+            <div class="col-12">
+                <div id="balance-status" class="card border-warning">
+                    <div class="card-body py-2 px-3 d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="fw-bold me-3">Controle de Partidas:</span>
+                            <span>Débitos: <strong id="total-debitos" class="text-danger">R$ 0,00</strong></span>
+                            <span class="mx-3">|</span>
+                            <span>Créditos: <strong id="total-creditos" class="text-success">R$ 0,00</strong></span>
+                            <span class="mx-3">|</span>
+                            <span>Diferença: <strong id="diferenca">R$ 0,00</strong></span>
+                        </div>
+                        <div id="balance-icon" class="fs-5">
+                            <span class="text-warning"><i class="bi bi-hourglass-split"></i> Aguardando...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Partidas -->
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-list-columns me-2"></i>Partidas do Lançamento</span>
+                        <span class="text-muted small">(mínimo 2 partidas, débitos = créditos)</span>
+                    </div>
+                    <div class="card-body">
+                        <!-- Erros do Formset -->
+                        {% if formset.non_form_errors %}
+                            <div class="alert alert-danger">
+                                {% for err in formset.non_form_errors %}
+                                    {{ err }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        {{ formset.management_form }}
+
+                        <div id="partidas-container">
+                            {% for pform in formset %}
+                                <div class="partida-row {% if pform.instance.tipo == 'DEBITO' %}tipo-debito{% elif pform.instance.tipo == 'CREDITO' %}tipo-credito{% endif %}" data-index="{{ forloop.counter0 }}">
+                                    {% for hidden in pform.hidden_fields %}
+                                        {{ hidden }}
+                                    {% endfor %}
+                                    <button type="button" class="btn btn-sm btn-outline-danger btn-remove-row" title="Remover Partida">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                    <div class="row g-2 align-items-end">
+                                        <div class="col-md-2">
+                                            <label class="form-label small fw-semibold">D/C</label>
+                                            {{ pform.tipo }}
+                                            {% if pform.tipo.errors %}<div class="text-danger small">{{ pform.tipo.errors }}</div>{% endif %}
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label class="form-label small fw-semibold">Tipo de Conta</label>
+                                            {{ pform.tipo_conta }}
+                                        </div>
+                                        <div class="col-md-3 conta-credora-wrapper">
+                                            <label class="form-label small fw-semibold">Conta Credora</label>
+                                            {{ pform.conta_credora }}
+                                            {% if pform.conta_credora.errors %}<div class="text-danger small">{{ pform.conta_credora.errors }}</div>{% endif %}
+                                        </div>
+                                        <div class="col-md-3 conta-devedora-wrapper" style="display:none;">
+                                            <label class="form-label small fw-semibold">Conta Devedora</label>
+                                            {{ pform.conta_devedora }}
+                                            {% if pform.conta_devedora.errors %}<div class="text-danger small">{{ pform.conta_devedora.errors }}</div>{% endif %}
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label class="form-label small fw-semibold">Valor (R$)</label>
+                                            {{ pform.valor }}
+                                            {% if pform.valor.errors %}<div class="text-danger small">{{ pform.valor.errors }}</div>{% endif %}
+                                        </div>
+                                        <div class="col-md-12 mt-2">
+                                            <label class="form-label small fw-semibold">Histórico</label>
+                                            {{ pform.historico }}
+                                        </div>
+                                        {% if pform.DELETE %}
+                                            <div class="col-md-12 d-none">{{ pform.DELETE }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <button type="button" id="add-partida" class="btn btn-outline-primary mt-2">
+                            <i class="bi bi-plus-circle me-2"></i>Adicionar Partida
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botoes de acao -->
+            <div class="col-12 d-flex gap-2 pb-3">
+                <button type="submit" class="btn btn-primary btn-lg" id="btn-salvar">
+                    <i class="bi bi-check-circle me-2"></i>Salvar Lançamento
+                </button>
+                <a href="{% url 'financeiro:lancamento_list' %}" class="btn btn-outline-secondary btn-lg">Cancelar</a>
+            </div>
+        </div>
+    </form>
+
+    <!-- Template para uma novsa partida -->
+    <template id="partida-template">
+        <div class="partida-row" data-index="__prefix__">
+            <button type="button" class="btn btn-sm btn-outline-danger btn-remove-row" title="Remover Partida">
+                <i class="bi bi-x-lg"></i>
+            </button>
+            <div class="row g-2 align-items-end">
+                <div class="col-md-2">
+                    <label class="form-label small fw-semibold">D/C</label>
+                    <select name="partidas-__prefix__-tipo" class="form-select">
+                        <option value="DEBITO">Débito</option>
+                        <option value="CREDITO">Crédito</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-semibold">Tipo de Conta</label>
+                    <select name="partidas-__prefix__-tipo_conta" class="form-select">
+                        <option value="credora">Conta Credora</option>
+                        <option value="devedora">Conta Devedora</option>
+                    </select>
+                </div>
+                <div class="col-md-3 conta-credora-wrapper">
+                    <label class="form-label small fw-semibold">Conta Credora</label>
+                    <select name="partidas-__prefix__-conta_credora" class="form-select conta-credora-field">
+                        <option value="">---------</option>
+                        {% for cc in formset.forms.0.fields.conta_credora.queryset %}
+                            <option value="{{ cc.pk }}">{{ cc }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3 conta-devedora-wrapper" style="display:none;">
+                    <label class="form-label small fw-semibold">Conta Devedora</label>
+                    <select name="partidas-__prefix__-conta_devedora" class="form-select conta-devedora-field">
+                        <option value="">---------</option>
+                        {% for cd in formset.forms.0.fields.conta_devedora.queryset %}
+                            <option value="{{ cd.pk }}">{{ cd }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-semibold">Valor (R$)</label>
+                    <input type="number" name="partidas-__prefix__-valor" class="form-control valor-partida" step="0.01" min="0.01" placeholder="0.00">
+                </div>
+                <div class="col-md-12 mt-2">
+                    <label class="form-label small fw-semibold">Histórico</label>
+                    <input type="text" name="partidas-__prefix__-historico" class="form-control" placeholder="Histórico da partida (opcional)">
+                </div>
+                <input type="hidden" name="partidas-__prefix__-id" value="">
+                <input type="hidden" name="partidas-__prefix__-lancamento" value="">
+            </div>
+        </div>
+    </template>
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'contabilidade/js/scripts.js' %}?v=2"></script>
+{% endblock %}

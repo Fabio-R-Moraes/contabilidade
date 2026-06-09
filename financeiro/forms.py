@@ -7,11 +7,11 @@ from .models import Lancamento, Partida, ContaCredora, ContaDevedora
 class ContaCredoraForm(forms.ModelForm):
     class Meta:
         model = ContaCredora
-        fields = ['nome', 'descricao', 'saldo', 'ativa']
+        fields = ['nome', 'descricao', 'saldo_inicial', 'ativa']
         widgets = {
             'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: NuBank, Caixa, Carteira...'}),
             'descricao': forms.Textarea(attrs={'class': 'form-control', "rows": 2}),
-            'saldo': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'saldo_inicial': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'ativa': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
         labels = {
@@ -21,14 +21,26 @@ class ContaCredoraForm(forms.ModelForm):
             'ativa': 'Conta Ativa',
         }
 
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+
+        #Na criação, saldo parte do saldo inicial criado
+        if not instance.pk:
+            instance.saldo = instance.saldo_inicial
+
+        if commit:
+            instance.save()
+
+        return instance
+
 class ContaDevedoraForm(forms.ModelForm):
     class Meta:
         model = ContaDevedora
-        fields = ['nome', 'descricao', 'saldo', 'limite', 'ativa']
+        fields = ['nome', 'descricao', 'saldo_inicial', 'limite', 'ativa']
         widgets = {
             'nome': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Cartão Visa, Financiamento...'}),
             'descricao': forms.Textarea(attrs={'class': 'form-control', "rows": 2}),
-            'saldo': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'saldo_inicial': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'limite': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'ativa': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
@@ -39,6 +51,18 @@ class ContaDevedoraForm(forms.ModelForm):
             'limite': 'Limite (R$)',
             'ativa': 'Conta Ativa',
         }
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+
+        #Na criação, saldo parte do saldo inicial criado
+        if not instance.pk:
+            instance.saldo = instance.saldo_inicial
+
+        if commit:
+            instance.save()
+
+        return instance
 
 class LancamentoForm(forms.ModelForm):
     class Meta:
@@ -63,7 +87,7 @@ class LancamentoForm(forms.ModelForm):
             'descricao': 'Descrição',
             'data': 'Data',
             'tipo_despesa': 'Tipo de Despesa',
-            'observacoes': 'Observaçõoes',
+            'observacoes': 'Observações',
         }
 
 class PartidaForm(forms.ModelForm):
@@ -108,8 +132,8 @@ class PartidaForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         if user:
-            self.fields['conta_credora'].queryset = ContaCredora.objects.filter(usuario=user, ativa=True)
-            self.fields['conta_devedora'].queryset = ContaDevedora.objects.filter(usuario=user, ativa=True)
+            self.fields['conta_credora'].queryset = ContaCredora.objects.filter(usuario=user, ativa=True) # type: ignore
+            self.fields['conta_devedora'].queryset = ContaDevedora.objects.filter(usuario=user, ativa=True) # type: ignore
 
         self.fields['conta_credora'].required = False
         self.fields['conta_devedora'].required = False
@@ -120,6 +144,14 @@ class PartidaForm(forms.ModelForm):
                 self.fields['tipo_conta'].initial = 'devedora'
             else:
                 self.fields['tipo_conta'].initial = 'credora'
+
+    def clean_conta_credora(self):
+        #Suprime erro de required - validação REAL feita no "clean"
+        return self.cleaned_data.get('conta_credora')
+    
+    def clean_conta_devedora(self):
+        #Suprime erro de required - validação REAL feita no "clean"
+        return self.cleaned_data.get('conta_devedora')
 
     def clean(self):
         cleaned_data = super().clean()
@@ -134,7 +166,7 @@ class PartidaForm(forms.ModelForm):
             cleaned_data['conta_devedora'] = None
         elif tipo_conta == 'devedora':
             if not conta_devedora:
-                self.add_error('congta_devedora', 'Selecione uma conta devedora')
+                self.add_error('conta_devedora', 'Selecione uma conta devedora')
             cleaned_data['conta_credora'] = None
 
         if valor is not None and valor <= 0:
@@ -149,36 +181,42 @@ class BasePartidaFormSet(BaseInlineFormSet):
 
     def _construct_form(self, i, **kwargs):
         kwargs['user'] = self.user
-        return super()._construct_form(i, **kwargs)
+        return super()._construct_form(i, **kwargs) # type: ignore
     
     def clean(self):
-        if any(self.errors):
-            return
-        
         partidas_validas = []
         for form in self.forms:
-            if form.cleaned_data and not form.cleaned_data.get('DELETE', False):
-                partidas_validas.append(form.cleaned_data)
+            if not form.cleaned_data:
+                continue #form extra vazio - ignorar
 
-            if len(partidas_validas) < 2:
-                raise ValidationError('Um lançamento deve ter ao menos 2 partidas!!!')
+            if form.cleaned_data.get('DELETE', False):
+                continue #marcado para deletar - ignorar
+
+            #Form preenchido com erros reais: aborta sem mensagem de balanceamento
+            if form.errors:
+                return
             
-            total_debitos = sum(
-                p.get('valor', Decimal('0')) for p in partidas_validas
-                    if p.get('tipo') == 'DEBITO'
-            )
-            total_creditos = sum(
-                p.get('valor', Decimal('0')) for p in partidas_validas
-                    if p.get('tipo') == 'CREDITO'
-            )
+            partidas_validas.append(form.cleaned_data)
 
-            if total_debitos != total_creditos:
-                raise ValidationError(
-                    f'O lançamento NÃO está balanceado!!! '
-                    f'Débitos: R$ {total_debitos:,.2f} | '
-                    f'Créditos: R$ {total_creditos:,.2f}. '
-                    f'Diferença: R$ {abs(total_debitos - total_creditos):,.2f}...'
-                )
+        if len(partidas_validas) < 2:
+            raise ValidationError('Um lançamento deve ter ao menos 2 partidas!!!')
+            
+        total_debitos = sum(
+            p.get('valor', Decimal('0')) for p in partidas_validas
+                if p.get('tipo') == 'DEBITO'
+        )
+        total_creditos = sum(
+            p.get('valor', Decimal('0')) for p in partidas_validas
+                if p.get('tipo') == 'CREDITO'
+        )
+
+        if total_debitos != total_creditos:
+            raise ValidationError(
+                f'O lançamento NÃO está balanceado!!! '
+                f'Débitos: R$ {total_debitos:,.2f} | '
+                f'Créditos: R$ {total_creditos:,.2f}. '
+                f'Diferença: R$ {abs(total_debitos - total_creditos):,.2f}...'
+            )
 
 #Fabrica com no minimo 4 partidas extras
 PartidaFormSet = inlineformset_factory(
@@ -186,7 +224,7 @@ PartidaFormSet = inlineformset_factory(
     Partida,
     form=PartidaForm,
     formset=BasePartidaFormSet,
-    extra = 4,
+    extra = 1,
     min_num=2,
     validate_min=True,
     can_delete=True,
