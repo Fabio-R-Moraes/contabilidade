@@ -1,3 +1,5 @@
+from django.forms.models import BaseModelForm
+from django.http import HttpResponse
 from django.views.generic import (
     ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
 )
@@ -6,10 +8,10 @@ from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
 from django.urls import reverse_lazy
-from django.shortcuts import redirect, get_object_or_404
+from django.shortcuts import redirect
 from django.contrib import messages
 from django.db import transaction
-from django.db.models import Sum, Q
+from django.db.models import Sum, Case, When, Value, DecimalField
 from decimal import Decimal
 import datetime
 from .models import ContaCredora, ContaDevedora, Lancamento, Partida
@@ -35,7 +37,7 @@ class RegistroView(CreateView):
         user = form.save()
         login(self.request, user)
         messages.success(self.request, f'Bem-vindo, { user.username }! Sua conta foi criada...')
-        return redirect(self.success_url)
+        return redirect(self.success_url) # type: ignore
     
 #Dashboard
 class DashboardView(LoginRequiredMixin, TemplateView):
@@ -124,7 +126,7 @@ class ContaCredoraDeleteView(LoginRequiredMixin, DeleteView):
     
     def form_valid(self, form):
         messages.success(self.request, 'Conta credora removida!!!')
-        return super().form_valid(form)
+        return super().form_valid(form) # type: ignore
     
 #Contas Devedoras
 class ContaDevedoraListView(LoginRequiredMixin, ListView):
@@ -173,7 +175,7 @@ class ContaDevedoraDeleteView(LoginRequiredMixin, DeleteView):
     
     def form_valid(self, form):
         messages.success(self.request, 'Conta devedora removida!!!')
-        return super().form_valid(form)  
+        return super().form_valid(form)   # type: ignore
 
 #Lancamentos
 class LancamentoListView(LoginRequiredMixin, ListView):
@@ -184,11 +186,24 @@ class LancamentoListView(LoginRequiredMixin, ListView):
     login_url = reverse_lazy('financeiro:login')
 
     def get_queryset(self):
-        qs = Lancamento.objects.filter(usuario=self.request.user).prefetch_related('partidas')
+        zero = Value(0, output_field=DecimalField()) # type: ignore
+        qs = (
+            Lancamento.objects.filter(usuario=self.request.user).annotate(
+                _total_debitos = Sum(
+                    Case(When(partidas__tipo='DEBITO', then='partidas'), # type: ignore
+                         default=zero, output_field=DecimalField()) # type: ignore
+                ),
+                _total_creditos = Sum(
+                    Case(When(partidas__tipo='CREDITO', then='partidas'), # type: ignore
+                         default=zero, output_field=DecimalField()) # type: ignore
+                ),
+            )
+        )
+        
         tipo = self.request.GET.get('tipo')
 
         if tipo:
-            qs = qs.filter(tipo_dsespesa=tipo)
+            qs = qs.filter(tipo_despesa=tipo)
 
         return qs
     
@@ -241,8 +256,50 @@ class LancamentoCreateView(LoginRequiredMixin, CreateView):
                 formset.save()
 
             messages.success(self.request, 'Lançamento registrado com sucesso!!!')
-            return redirect(self.success_url)
+            return redirect(self.success_url) # type: ignore
         else:
             return super().form_invalid(form)
+    
+class LancamentoUpdateView(LoginRequiredMixin, UpdateView):
+    model = Lancamento
+    form_class = LancamentoForm
+    template_name = 'lancamento/form.html'
+    success_url = reverse_lazy('financeiro:lancamento_list')
+    login_url = reverse_lazy('financeiro:login')
+
+    def get_queryset(self):
+        return Lancamento.objects.filter(usuario=self.request.user)
+    
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+
+        if self.request.POST:
+            ctx['formset'] = PartidaFormSet(
+                self.request.POST,
+                instance=self.object,
+                user=self.request.user
+            )
+        else:
+            ctx['formset'] = PartidaFormSet(
+                instance=self.object,
+                user=self.request.user
+            )
+
+        return ctx
+    
+    def form_valid(self, form):
+        ctx = self.get_context_data()
+        formset = ctx['formset']
+
+        if formset.is_valid():
+            with transaction.atomic():
+                self.object = form.save()
+                formset.instance = self.object
+                formset.save()
+
+            messages.success(self.request, 'Lançamento atualizado com sucesso!!!')
+            return redirect(self.success_url) # type: ignore
+        else:
+            return self.form_invalid(form)
     
     

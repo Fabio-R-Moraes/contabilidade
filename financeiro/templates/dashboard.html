@@ -121,7 +121,7 @@
                             {% for l in ultimos_lancamentos %}
                                 <tr>
                                     <td class="ps-3">{{ l.data|date:"d/m/Y" }}</td>
-                                    <td><a href="#">{{ l.descricao }}</a></td>
+                                    <td><a href="{% url 'financeiro:lancamento_detail' l.pk %}">{{ l.descricao }}</a></td>
                                     <td>
                                         {% if l.tipo_despesa == 'NORMAL' %}<span class="badge badge-normal">Normal</span>
                                         {% elif l.tipo_despesa == 'FIXA' %}<span class="badge badge-fixa">Fixa</span>
