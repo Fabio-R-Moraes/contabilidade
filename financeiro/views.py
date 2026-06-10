@@ -302,4 +302,17 @@ class LancamentoUpdateView(LoginRequiredMixin, UpdateView):
         else:
             return self.form_invalid(form)
     
+class LancamentoDeleteView(LoginRequiredMixin, DeleteView):
+    model = Lancamento
+    template_name = 'lancamento/confirm_delete.html'
+    success_url = reverse_lazy('financeiro:lancamento_list')
+    login_url = reverse_lazy('financeiro:login')
+
+    def get_queryset(self):
+        return Lancamento.objects.filter(usuario=self.request.user)
     
+    def form_valid(self, form):
+        messages.success(self.request, 'Lançamento removido!!!')
+        return super().form_valid(form) # type: ignore
+    
+        

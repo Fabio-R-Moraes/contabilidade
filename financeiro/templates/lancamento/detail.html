@@ -28,7 +28,7 @@
                 </div>
                 <div class="card-footer d-flex gap-2">
                     <a href="{% url 'financeiro:lancamento_update' object.pk %}" class="btn btn-sm btn-primary">Editar</a>
-                    <a href="#" class="btn btn-sm btn-outline-danger">Excluir</a>
+                    <a href="{% url 'financeiro:lancamento_delete' object.pk %}" class="btn btn-sm btn-outline-danger">Excluir</a>
                     <a href="{% url 'financeiro:lancamento_list' %}" class="btn btn-sm btn-outline-secondary ms-auto">Voltar</a>
                 </div>
             </div>

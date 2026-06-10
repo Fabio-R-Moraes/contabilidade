@@ -28,4 +28,5 @@ urlpatterns = [
     path('lancamentos/novo', views.LancamentoCreateView.as_view(), name='lancamento_create'),
     path('lancamentos/<int:pk>/', views.LancamentoDetailView.as_view(), name='lancamento_detail'),
     path('lancamentos/<int:pk>/editar/', views.LancamentoUpdateView.as_view(), name='lancamento_update'),
+    path('lancamentos/<int:pk>/excluir/', views.LancamentoDeleteView.as_view(), name='lancamento_delete'),
 ]

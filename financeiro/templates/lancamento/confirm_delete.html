@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}Excluir Lançamento{% endblock %}
+{% block page_title %}Excluir Lançamento{% endblock %}
+{% block content %}
+    <div class="row justify-content-center">
+        <div class="col-lg-5">
+            <div class="card border-danger">
+                <div class="card-body text-center p-5">
+                    <i class="bi bi-exclamation-triangle-fill text-danger fs-1 mb-3 d-block"></i>
+                    <h5>Deseja excluir o lançamento <strong>"{{ object.descricao }}"</strong>??</h5>
+                    <p class="text-muted">Toas as {{ objecdt.partidas.count }} partidas também serão removidas...</p>
+                    <form method="post" class="d-flex gap-2 justify-content-center">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">Sim, excluir!!!</button>
+                        <a href="{% url 'financeiro:lancamento_list' %}" class="btn btn-outline-secondary">Cancelar</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
