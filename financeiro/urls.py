@@ -29,4 +29,8 @@ urlpatterns = [
     path('lancamentos/<int:pk>/', views.LancamentoDetailView.as_view(), name='lancamento_detail'),
     path('lancamentos/<int:pk>/editar/', views.LancamentoUpdateView.as_view(), name='lancamento_update'),
     path('lancamentos/<int:pk>/excluir/', views.LancamentoDeleteView.as_view(), name='lancamento_delete'),
+
+    #Extrato por Conta
+    path('contas/credoras/<int:pk>/extrato/', views.ExtratoContaCredoraView.as_view(), name='extrato_credora'),
+    path('contas/devedoras/<int:pk>/extrato/', views.ExtratoContaDevedoraView.as_view(), name='extrato_devedora'),
 ]

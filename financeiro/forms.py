@@ -224,7 +224,7 @@ PartidaFormSet = inlineformset_factory(
     Partida,
     form=PartidaForm,
     formset=BasePartidaFormSet,
-    extra = 1,
+    extra = 3,
     min_num=2,
     validate_min=True,
     can_delete=True,

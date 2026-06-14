@@ -12,7 +12,7 @@
                         </div>
                         <div>
                             <div class="text-muted small">Total Credoras</div>
-                            <div class="saldo-credora fs-4">R$ {{ total_credoras|brl }}</div>
+                            <div class="saldo-credora fs-4">R$ {{ total_credoras|floatformat:2 }}</div>
                         </div>
                     </div>
                 </div>
@@ -27,7 +27,7 @@
                         </div>
                         <div>
                             <div class="text-muted small">Total Devedoras</div>
-                            <div class="saldo-devedora fs-4">R$ {{ total_devedoras|brl }}</div>
+                            <div class="saldo-devedora fs-4">R$ {{ total_devedoras|floatformat:2 }}</div>
                         </div>
                     </div>
                 </div>
@@ -43,7 +43,7 @@
                         <div>
                             <div class="text-muted small">Saldo Líquido</div>
                             <div class="fs-4 {% if saldo_liquido >= 0 %}saldo-credora{% else %}saldo-devedora{% endif %}">
-                                R$ {{ saldo_liquido|brl }}
+                                R$ {{ saldo_liquido|floatformat:2 }}
                             </div>
                         </div>
                     </div>
@@ -63,28 +63,14 @@
                 </div>
                 <div class="card-body p-0">
                     <table class="table table-hover mb-0">
-                        <thead class="tabel-light">
-                            <tr>
-                                <th class="ps-3">Conta</th>
-                                <th class="text-end">Saldo Atual</th>
-                                <th class="text-end pe-3">Saldo do mês</th>
-                            </tr>
-                        </thead>
                         <tbody>
                             {% for conta in contas_credoras %}
                                 <tr>
-                                    <td class="ps-3"><a href="{% url 'financeiro:extrato_credora' conta.pk %}">{{ conta.nome }}</a></td>
-                                    <td class="text-end pe-3 conta-credora">R$ {{ conta.saldo|brl }}</td>
-                                    <td class="text-end pe-3">
-                                        {% with sm=conta.saldo_mes|default:0 %}
-                                            <span class="{% if sm >= 0 %}saldo-credora{% else %}saldo-devedora{% endif %}">
-                                                R$ {{ sm|brl }}
-                                            </span>
-                                        {% endwith %}
-                                    </td>
+                                    <td class="ps-3">{{ conta.nome }}</td>
+                                    <td class="text-end pe-3 conta-credora">R$ {{ conta.saldo|floatformat:2 }}</td>
                                 </tr>
                             {% empty %}
-                                <tr><td colspan="3" class="text-center text-muted py-3">Nenhuma conta cadastrada!!!</td></tr>
+                                <tr><td colspan="2" class="text-center text-muted py-3">Nenhuma conta cadastrada!!!</td></tr>
                             {% endfor %}
                         </tbody>
                     </table>
@@ -101,28 +87,14 @@
                 </div>
                 <div class="card-body p-0">
                     <table class="table table-hover mb-0">
-                        <thead class="table light">
-                            <tr>
-                                <th class="ps-3">Conta</th>
-                                <th class="text-end">Saldo Atual</th>
-                                <th class="text-end pe-3">Saldo do Mẽs</th>
-                            </tr>
-                        </thead>
                         <tbody>
                             {% for conta in contas_devedoras %}
                                 <tr>
-                                    <td class="ps-3"><a href="{% url 'financeiro:extrato_devedora' conta.pk %}">{{ conta.nome }}</a></td>
-                                    <td class="text-end pe-3 conta-devedora">R$ {{ conta.saldo|brl }}</td>
-                                    <td class="text-end pe-3">
-                                        {% with sm=saldo_mes|default:0 %}
-                                            <span class="{% if sm >= 0 %}saldo-credora{% else %}saldo-devedora{% endif %}">
-                                                R$ {{ sm|brl }}
-                                            </span>
-                                        {% endwith %}
-                                    </td>
+                                    <td class="ps-3">{{ conta.nome }}</td>
+                                    <td class="text-end pe-3 conta-devedora">R$ {{ conta.saldo|floatformat:2 }}</td>
                                 </tr>
                             {% empty %}
-                                <tr><td colspan="3" class="text-center text-muted py-3">Nenhuma conta cadastrada!!!</td></tr>
+                                <tr><td colspan="2" class="text-center text-muted py-3">Nenhuma conta cadastrada!!!</td></tr>
                             {% endfor %}
                         </tbody>
                     </table>
@@ -142,7 +114,7 @@
                     <table class="table table-hover-mb-0">
                         <thead class="table-light">
                             <tr>
-                                <th class="ps-3">Data</th><th>Descrição</th><th>Tipo</th><th>Situação</th><th class="text-end pe-3">Valor</th>
+                                <th class="ps-3">Data</th><th>Descrição</th><th>Tipo</th><th>Situação</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -158,16 +130,15 @@
                                         {% endif %}
                                     </td>
                                     <td>
-                                        {% if l.total_debitos_lancamento == l.total_creditos_lancamento %}
+                                        {% if l.esta_balanceado %}
                                             <span class="text-success"><i class="bi bi-check-circle-fill"></i> Balanceado</span>
                                         {% else %}
                                             <span class="text-danger"><i class="bi bi-exclamation-triangle-fill"></i> Desbalanceado</span>
                                         {% endif %}
                                     </td>
-                                    <td class="text-end pe-3 fw-bold saldo-devedora">{{ l.valor_lancamento|default:0|brl }}</td>
                                 </tr>
                             {% empty %}
-                                <tr><td colspan="5" class="text-center text-muted py-3">Nenhum lançamento ainda...</td></tr>
+                                <tr><td colspan="4" class="text-center text-muted py-3">Nenhum lançamento ainda...</td></tr>
                             {% endfor %}
                         </tbody>
                     </table>

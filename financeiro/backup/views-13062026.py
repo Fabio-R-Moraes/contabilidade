@@ -8,7 +8,7 @@ from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
 from django.urls import reverse_lazy
-from django.shortcuts import redirect, get_object_or_404
+from django.shortcuts import redirect
 from django.contrib import messages
 from django.db import transaction
 from django.db.models import Sum, Case, When, Value, DecimalField
@@ -47,63 +47,14 @@ class DashboardView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         user = self.request.user
-        hoje = datetime.date.today()
-        ano, mes = hoje.year, hoje.month
 
-        contas_credoras = ContaCredora.objects.filter(usuario=user, ativa=True).annotate(
-            saldo_mes = Sum(
-                Case(
-                    When(
-                        partidas__lancamento__data__year = ano,
-                        partidas__lancamento__data__month = mes,
-                        partidas__tipo = 'CREDITO',
-                        then='partidas__valor',
-                    ),
-                    default=Value(0),
-                    output_field=DecimalField(max_digits=9, decimal_places=2),
-                )
-            ) - Sum(
-                Case(
-                    When(
-                        partidas__lancamento__data__year = ano,
-                        partidas__lancamento__data__month = mes,
-                        partidas__tipo = 'DEBITO',
-                        then='partidas__valor',
-                    ),
-                    default=Value(0),
-                    output_field=DecimalField(max_digits=9, decimal_places=2),
-                )
-            )
-        )
-        contas_devedoras = ContaDevedora.objects.filter(usuario=user, ativa=True).annotate(
-            saldo_mes = Sum(
-                Case(
-                    When(
-                        partidas__lancamento__data__year = ano,
-                        partidas__lancamento__data__month = mes,
-                        partidas__tipo = 'CREDITO',
-                        then='partidas__valor',
-                    ),
-                    default=Value(0),
-                    output_field=DecimalField(max_digits=9, decimal_places=2),
-                )
-            ) - Sum(
-                Case(
-                    When(
-                        partidas__lancamento__data__year = ano,
-                        partidas__lancamento__data__month = mes,
-                        partidas__tipo = 'DEBITO',
-                        then='partidas__valor',
-                    ),
-                    default=Value(0),
-                    output_field=DecimalField(max_digits=9, decimal_places=2),
-                )
-            )
-        )
+        contas_credoras = ContaCredora.objects.filter(usuario=user, ativa=True)
+        contas_devedoras = ContaDevedora.objects.filter(usuario=user, ativa=True)
 
         total_credoras = contas_credoras.aggregate(t=Sum('saldo'))['t'] or Decimal('0')
         total_devedoras = contas_devedoras.aggregate(t=Sum('saldo'))['t'] or Decimal('0')
 
+        hoje = datetime.date.today()
         lancamentos_mes = Lancamento.objects.filter(
             usuario=user,
             data__year=hoje.year,
@@ -121,29 +72,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             'total_credoras': total_credoras,
             'total_devedoras': total_devedoras,
             'saldo_liquido': total_credoras - total_devedoras,
-            'ultimos_lancamentos': Lancamento.objects.filter(usuario=user).annotate(
-                valor_lancamento = Sum(
-                    Case(
-                        When(partidas__tipo = 'DEBITO', then='partidas__valor'),
-                        default=Value(0),
-                        output_field=DecimalField(max_digits=9, decimal_places=2),
-                    )
-                ),
-                total_debitos_lancamento = Sum(
-                    Case(
-                        When(partidas__tipo = 'DEBITO', then='partidas__valor'),
-                        default=Value(0),
-                        output_field=DecimalField(max_digits=9, decimal_places=2),
-                    )
-                ),
-                total_creditos_lancamento = Sum(
-                    Case(
-                        When(partidas__tipo = 'CREDITO', then='partidas__valor'),
-                        default=Value(0),
-                        output_field=DecimalField(max_digits=9, decimal_places=2),
-                    )
-                ),
-            ).order_by('-data')[:5],
+            'ultimos_lancamentos': Lancamento.objects.filter(usuario=user)[:5],
             'lancamentos_por_tipo': por_tipo,
             'total_lancamentos_mes': lancamentos_mes.count(),
         })
@@ -386,87 +315,4 @@ class LancamentoDeleteView(LoginRequiredMixin, DeleteView):
         messages.success(self.request, 'Lançamento removido!!!')
         return super().form_valid(form) # type: ignore
     
-#Extrato por conta
-def _qs_lancamentos_anotados(lancamentos_qs, filtro_conta):
-    """
-    Anota totais globais e dados da partida desta conta específica.
-    filtro_conta: dict com o filtro da partida, ex: {'partidas__conta-credora':conta}
-    """
-    zero = Value(0, output_field=DecimalField(max_digits=9, decimal_places=2))
-
-    #Filtro para as partidas desta conta específica
-    when_debito_conta = {**filtro_conta, 'partidas__tipo': 'DEBITO'}
-    when_credito_conta = {**filtro_conta, 'partidas__tipo': 'CREDITO'}
-
-    return lancamentos_qs.annotate(
-        #Valor e tipo da partida desta conta no lançamento
-        valor_partida_lancamento = Sum(
-            Case(
-                When(**when_debito_conta, then='partidas__valor'),
-                When(**when_credito_conta, then='partidas__valor'),
-                default=zero, output_field=DecimalField()
-            )
-        ),
-        debito_conta_lancamentos = Sum(
-            Case(
-                When(**when_debito_conta, then='partidas__valor'),
-                output_field=DecimalField()
-            )
-        ),
-        credito_conta_lancamentos = Sum(
-            Case(
-                When(**when_credito_conta, then='partidas__valor'),
-                output_field=DecimalField()
-            )
-        ),
-    ).order_by('-data', '-criado_em')
-
-class ExtratoContaCredoraView(LoginRequiredMixin, ListView):
-    template_name = 'extrato_conta.html'
-    context_object_name = 'lancamentos'
-    paginate_by = 30
-    login_url = reverse_lazy('financeiro:login')
-
-    def get_queryset(self):
-        self.conta = get_object_or_404(
-            ContaCredora, pk=self.kwargs['pk'], usuario=self.request.user
-        )
-
-        qs = Lancamento.objects.filter(
-            usuario=self.request.user,
-            partidas__conta_credora=self.conta,
-        ).distinct()
-
-        return _qs_lancamentos_anotados(qs, {'partidas__conta_credora': self.conta})
-    
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx['conta'] = self.conta
-        ctx['tipo_conta'] = 'credora'
         
-        return ctx
-    
-class ExtratoContaDevedoraView(LoginRequiredMixin, ListView):
-    template_name = 'extrato_conta.html'
-    context_object_name = 'lancamentos'
-    paginate_by = 30
-    login_url = reverse_lazy('financeiro:login')
-
-    def get_queryset(self):
-        self.conta = get_object_or_404(
-            ContaDevedora, pk=self.kwargs['pk'], usuario=self.request.user
-        )
-
-        qs = Lancamento.objects.filter(
-            usuario=self.request.user,
-            partidas__conta_devedora=self.conta,
-        ).distinct()
-
-        return _qs_lancamentos_anotados(qs, {'partidas__conta_devedora': self.conta})
-    
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx['conta'] = self.conta
-        ctx['tipo_conta'] = 'devedora'
-        
-        return ctx
