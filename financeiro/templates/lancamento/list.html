@@ -34,8 +34,8 @@
                                 {% elif l.tipo_despesa == 'SUPERFLUA' %}<span class="badge badge-superflua">Supérflua</span>
                                 {% endif %}
                             </td>
-                            <td class="saldo-devedora">R$ {{ l.total_debitos|floatformat:2 }}</td>
-                            <td class="saldo-credora">R$ {{ l.total_creditos|floatformat:2 }}</td>
+                            <td class="saldo-devedora">R$ {{ l.total_debitos|brl }}</td>
+                            <td class="saldo-credora">R$ {{ l.total_creditos|brl }}</td>
                             <td>
                                 {% if l.esta_balanceado %}
                                     <span class="text-success"><i class="bi bi-check-circle-fill"></i> Balanceado</span>

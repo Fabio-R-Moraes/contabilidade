@@ -20,7 +20,7 @@
                         <tr>
                             <td class="ps-3 fw-semibold">{{ conta.nome }}</td>
                             <td class="text-muted">{{ conta.descricao|default:"-" }}</td>
-                            <td class="saldo-credora fw-bold">R$ {{ conta.saldo|floatformat:2 }}</td>
+                            <td class="saldo-credora fw-bold">R$ {{ conta.saldo|brl }}</td>
                             <td>
                                 {% if conta.ativa %}<span class="badge bg-success">Ativa</span>
                                 {% else %}<span class="badge bg-secondary">Inativa</span>{% endif %}

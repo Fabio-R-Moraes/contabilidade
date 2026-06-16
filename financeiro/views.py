@@ -50,7 +50,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         hoje = datetime.date.today()
         ano, mes = hoje.year, hoje.month
 
-        contas_credoras = ContaCredora.objects.filter(usuario=user, ativa=True).annotate(
+        contas_credoras = ContaCredora.objects.filter(usuario=user, ativa=True).order_by('nome').annotate(
             saldo_mes = Sum(
                 Case(
                     When(
@@ -75,7 +75,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 )
             )
         )
-        contas_devedoras = ContaDevedora.objects.filter(usuario=user, ativa=True).annotate(
+        contas_devedoras = ContaDevedora.objects.filter(usuario=user, ativa=True).order_by('nome').annotate(
             saldo_mes = Sum(
                 Case(
                     When(
@@ -269,7 +269,7 @@ class LancamentoListView(LoginRequiredMixin, ListView):
                          default=zero, output_field=DecimalField()) # type: ignore
                 ),
             )
-        )
+        ).order_by('-data')
         
         tipo = self.request.GET.get('tipo')
 
