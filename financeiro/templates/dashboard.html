@@ -1,57 +1,41 @@
-{%extends 'base.html' %}
+{% extends 'base.html' %}
 {% block title %}Finanças Familiar{% endblock %}
 {% block page_title %}Dashboard{% endblock %}
 {% block content %}
-    <div class="row g-3 mb-4">
-        <div class="col-md-4">
-            <div class="card-h-100">
-                <div class="card-body">
-                    <div class="d-flex align-items-center">
-                        <div class="rounded-circle p-3 me-3" style="background:#e8f8f0;">
-                            <i class="bi bi-bank fs-4" style="color:#27ae60"></i>
-                        </div>
-                        <div>
-                            <div class="text-muted small">Total Credoras</div>
-                            <div class="saldo-credora fs-4">R$ {{ total_credoras|brl }}</div>
-                        </div>
-                    </div>
+    <!-- Lançamentos das duas semanas -->
+    <div class="row g-3">
+        <!-- Próxima Semana -->
+        <div class="col-12">
+            <div class="card semana-card semana-proxima">
+                <div class="card-header">
+                    <i class="bi bi-calendar-plus me-2"></i> Próxima Semana
+                    <span class="fw-normal ms-1 opacity-75">
+                        {{ semana_proxima.inicio|date:"d/m" }} a {{ semana_proxima.fim|date:"d/m" }}
+                    </span>
+                </div>
+                <div class="card-body p-0">
+                    {% include 'partials/semana.html' with semana=semana_proxima %}
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card-h-100">
-                <div class="card-body">
-                    <div class="d-flex align-items-center">
-                        <div class="rounded-circle p-3 me-3" style="background:#fdecea;">
-                            <i class="bi bi-credit-card fs-4" style="color:#e74c3c"></i>
-                        </div>
-                        <div>
-                            <div class="text-muted small">Total Devedoras</div>
-                            <div class="saldo-devedora fs-4">R$ {{ total_devedoras|brl }}</div>
-                        </div>
-                    </div>
+        
+        <!-- Semana Atual -->
+        <div class="col-12">
+            <div class="card semana-card semana-atual">
+                <div class="card-header">
+                    <i class="bi bi-calendar-check me-2"></i> Semana Atual
+                    <span class="fw-normal ms-1 opacity-75">
+                        {{ semana_atual.inicio|date:"d/m" }} a {{ semana_atual.fim|date:"d/m" }}
+                    </span>
                 </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card-h-100">
-                <div class="card-body">
-                    <div class="d-flex align-items-center">
-                        <div class="rounded-circle p-3 me-3" style="background:#eef2ff;">
-                            <i class="bi bi-calculator fs-4" style="color:#1a3a5c"></i>
-                        </div>
-                        <div>
-                            <div class="text-muted small">Saldo Líquido</div>
-                            <div class="fs-4 {% if saldo_liquido >= 0 %}saldo-credora{% else %}saldo-devedora{% endif %}">
-                                R$ {{ saldo_liquido|brl }}
-                            </div>
-                        </div>
-                    </div>
+                <div class="card-body p-0">
+                    {% include 'partials/semana.html' with semana=semana_atual %}
                 </div>
             </div>
         </div>
     </div>
-
+    <hr>
+    <!-- Tabela de Contas -->
     <div class="row g-3">
         <div class="col-lg-6">
             <div class="card">
@@ -114,7 +98,7 @@
                                     <td class="ps-3"><a href="{% url 'financeiro:extrato_devedora' conta.pk %}">{{ conta.nome }}</a></td>
                                     <td class="text-end pe-3 conta-devedora">R$ {{ conta.saldo|brl }}</td>
                                     <td class="text-end pe-3">
-                                        {% with sm=saldo_mes|default:0 %}
+                                        {% with sm=conta.saldo_mes|default:0 %}
                                             <span class="{% if sm >= 0 %}saldo-credora{% else %}saldo-devedora{% endif %}">
                                                 R$ {{ sm|brl }}
                                             </span>
@@ -123,51 +107,6 @@
                                 </tr>
                             {% empty %}
                                 <tr><td colspan="3" class="text-center text-muted py-3">Nenhuma conta cadastrada!!!</td></tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <span><i class="bi bi-journal-text me-2"></i>Últimos Lançamentos</span>
-                    <a href="{% url 'financeiro:lancamento_create' %}" class="btn btn-sm btn-primary">
-                         <i class="bi bi-plus me-1"></i>Novo
-                    </a>
-                </div>
-                <div class="card-body p-0">
-                    <table class="table table-hover-mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th class="ps-3">Data</th><th>Descrição</th><th>Tipo</th><th>Situação</th><th class="text-end pe-3">Valor</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for l in ultimos_lancamentos %}
-                                <tr>
-                                    <td class="ps-3">{{ l.data|date:"d/m/Y" }}</td>
-                                    <td><a href="{% url 'financeiro:lancamento_detail' l.pk %}">{{ l.descricao }}</a></td>
-                                    <td>
-                                        {% if l.tipo_despesa == 'NORMAL' %}<span class="badge badge-normal">Normal</span>
-                                        {% elif l.tipo_despesa == 'FIXA' %}<span class="badge badge-fixa">Fixa</span>
-                                        {% elif l.tipo_despesa == 'VARIAVEL' %}<span class="badge badge-variavel">Variável</span>
-                                        {% elif l.tipo_despesa == 'SUPERFLUA' %}<span class="badge badge-superflua">Supérflua</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if l.total_debitos_lancamento == l.total_creditos_lancamento %}
-                                            <span class="text-success"><i class="bi bi-check-circle-fill"></i> Balanceado</span>
-                                        {% else %}
-                                            <span class="text-danger"><i class="bi bi-exclamation-triangle-fill"></i> Desbalanceado</span>
-                                        {% endif %}
-                                    </td>
-                                    <td class="text-end pe-3 fw-bold saldo-devedora">{{ l.valor_lancamento|default:0|brl }}</td>
-                                </tr>
-                            {% empty %}
-                                <tr><td colspan="5" class="text-center text-muted py-3">Nenhum lançamento ainda...</td></tr>
                             {% endfor %}
                         </tbody>
                     </table>

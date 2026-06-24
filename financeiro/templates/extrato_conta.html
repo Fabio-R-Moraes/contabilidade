@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}Extrato - {{ conta.nome }}{% endblock %}
 {% block page_title %}
     {% if tipo_conta == 'credora' %}
@@ -6,35 +7,48 @@
     {% else %}
         <i class="bi bi-credit-card me-2 text-danger"></i>
     {% endif %}
+    Extrato: {{ conta.nome }}
 {% endblock %}
 {% block content %}
     <!-- Cabeçalho da Conta -->
     <div class="row g-3 mb-4">
-        <div class="col-md-4">
+        <div class="col-md-3">
             <div class="card">
-                <div class="card-body">
-                    <div class="text-muted small mb-1">Saldo Atual</div>
-                    <div class="fs-4 fw-bold {% if tipo_conta == 'credora' %}saldo-credora{% else %}saldo-devedora{% endif %}">
-                        R$ {{ conta.saldo|brl }}
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-body">
+                <div class="card-body py-3">
                     <div class="text-muted small mb-1">Saldo Inicial</div>
-                    <div class="fs-4 fw-bold text-secondary">
+                    <div class="fs-5 fw-bold text-secondary">
                         R$ {{ conta.saldo_inicial|brl }}
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-3">
             <div class="card">
-                <div class="card-body">
-                    <div class="text-muted small mb-1">Total de Lançamentos</div>
-                    <div class="fs-4 fw-bold text-primary">{{ paginator.count }}</div>
+                <div class="card-body py-3">
+                    <div class="text-muted small mb-1">Total de Créditos</div>
+                    <div class="fs-5 fw-bold saldo-credora">
+                        R$ {{ total_creditos|brl }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body py-3">
+                    <div class="text-muted small mb-1">Total de Débitos</div>
+                    <div class="fs-5 fw-bold saldo-devedora">
+                        R$ {{ total_debitos|brl }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body py-3">
+                    <div class="text-muted small mb-1">Saldo Real</div>
+                    <div class="fs-5 fw-bold {% if saldo_real >= 0 %}saldo-credora{% else %}saldo-devedora{% endif %}">
+                        R$ {{ saldo_real|brl }}
+                    </div>
                 </div>
             </div>
         </div>
@@ -43,57 +57,90 @@
     <!-- Tabela de lançamentos -->
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
-            <span><i class="bi bi-journal-text me-2"></i> Lançamentos desta conta</span>
-            <a href="{% url 'financeiro:dashboard' %}" class="btn btn-sm btn-outline-secondary">
-                <i class="bi bi-arrow-left me-1"></i> Voltar
-            </a>
+            <span><i class="bi bi-journal-text me-2"></i> Lançamentos - {{ conta.nome }}</span>
+            <div class="d-flex gap-2 align-items-center">
+                <button class="btn btn-sm btn-outline-secondary" id="btn-limpar-checks" title="Desmarcar Todos">
+                    <i class="bi bi-square me-1"></i> Desmarcar Todos
+                </button>
+                <a href="{% url 'financeiro:dashboard' %}" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i> Voltar
+                </a>
+            </div>
         </div>
         <div class="card-body p-0">
             <table class="table table-hover mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th class="ps-3">Data</th>
-                        <th>Descrição</th>
+                        <th class="check-col ps-2"><i class="bi bi-check2-square" title="Conferido"></i></th>
                         <th>Tipo</th>
-                        <th>D/C nesta conta</th>
-                        <th class="text-end">Valor</th>
-                        <th class="text-end pe-3">Ações</th>
+                        <th>D/C</th>
+                        <th>ID</th>
+                        <th>Descrição</th>
+                        <th class="valor-col">Valor</th>
+                        <th class="saldo-col pe-3">Saldo Acumulado</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for l in lancamentos %}
-                        <tr>
-                            <td class="ps-3">{{ l.data|date:"d/m/Y" }}</td>
-                            <td>
-                                <a href="{% url 'financeiro:lancamento_detail' l.pk %}">{{ l.descricao }}</a>
+                    <!-- Saldo Inicial -->
+                    <tr class="row-data-header">
+                        <td colspan="6">Saldo Anterior</td>
+                        <td class="saldo-col pe-3">R$ {{ conta.saldo_inicial|brl }}</td>
+                    </tr>
+
+                    {% for grupo in grupos %}
+                        <!-- Cabeçalho do dia -->
+                        <tr class="row-data-header">
+                            <td colspan="7" class="ps-3">{{ grupo.data|date:"d/m/Y - l"}}</td>
+                        </tr>
+
+                        <!-- Lançamentos do dia -->
+                        {% for l in grupo.lancamentos %}
+                            <tr class="lancamento-row" data-id="{{ l.pk }}">
+                                <td class="check-col ps-2">
+                                    <input type="checkbox" class="check-lancamento" data-id="{{ l.pk }}" title="Marcar como conferido">
+                                </td>
+                                <td>
+                                    {% if l.tipo_despesa == 'NORMAL' %}<span class="badge badge-normal">Normal</span>
+                                    {% elif l.tipo_despesa == 'FIXA' %}<span class="badge badge-fixa">Fixa</span>
+                                    {% elif l.tipo_despesa == 'VARIAVEL' %}<span class="badge badge-variavel">Variável</span>
+                                    {% elif l.tipo_despesa == 'SUPERFLUA' %}<span class="badge badge-superflua">Supérflua</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if l.debito_conta_lancamentos %}
+                                        <span class="text-danger">Débito</span>
+                                    {% elif l.credito_conta_lancamentos %}
+                                        <span class="text-success">Crédito</span>
+                                    {% else %}
+                                        <span class="badge badge-secondary">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'financeiro:lancamento_detail' l.pk %}">{{ l.pk }}</a>
+                                </td>
+                                <td>{{ l.descricao }}</td>
+                                <td class="valor-col fw-bold {% if l.credito_conta_lancamentos %}saldo-credora{% else %}saldo-devedora{% endif %}">
+                                    R$ {{ l.valor_partida_lancamento|default:0|brl }}
+                                </td>
+                                <td class="saldo-col pe-3"></td>
+                            </tr>
+                        {% endfor %}
+
+                        <!-- SubTotal do dia-->
+                        <tr class="row-subtotal {% if grupo.saldo_acumulado < 0%}negativo{% endif %}">
+                            <td colspan="5" class="ps-3">
+                                Sub-Total {{ grupo.data|date:"d/m/Y" }}
+                                &nbsp;|&nbsp; Créditos: R$ {{ grupo.creditos_dia|brl }}
+                                &nbsp;|&nbsp; Débitos: R$ {{ grupo.debitos_dia|brl }}
                             </td>
-                            <td>
-                                {% if l.tipo_despesa == 'NORMAL' %}<span class="badge badge-normal">Normal</span>
-                                {% elif l.tipo_despesa == 'FIXA' %}<span class="badge badge-fixa">Fixa</span>
-                                {% elif l.tipo_despesa == 'VARIAVEL' %}<span class="badge badge-variavel">Variável</span>
-                                {% elif l.tipo_despesa == 'SUPERFLUA' %}<span class="badge badge-superflua">Supérflua</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if l.debito_conta_lancamentos %}
-                                    <span class="text-danger">D - Débito</span>
-                                {% elif l.credito_conta_lancamentos %}
-                                    <span class="text-success">C - Crédito</span>
+                            <td class="valor-col">
+                                {% if grupo.creditos_dia > grupo.debitos_dia %}
+                                    <span class="saldo-credora">+ R$ {{ grupo.creditos_dia|brl }}</span>
                                 {% else %}
-                                    <span class="badge badge-secondary">-</span>
+                                    <sppan class="saldo-devedora">+ R$ {{ grupo.debitos_dia|brl }}</sppan>
                                 {% endif %}
                             </td>
-                            <td class="text-end fw-bold {% if l.credito_conta_lancamentos %}saldo-credora{% else %}saldo-devedora{% endif %}">
-                                R$ {{ l.valor_partida_lancamento|default:0|brl }}
-                            </td>
-                            <td class="text-end pe-3">
-                                <a href="{% url 'financeiro:lancamento_update' l.pk %}" class="btn btn-sm btn-outline-primary me-1">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-                                <a href="{% url 'financeiro:lancamento_delete' l.pk %}" class="btn btn-sm btn-outline danger">
-                                    <i class="bi bi-trash"></i>
-                                </a>
-                            </td>
+                            <td class="saldo-col pe-3">R$ {{ grupo.saldo_acumulado|brl }}</td>
                         </tr>
                     {% empty %}
                         <tr>
@@ -102,27 +149,23 @@
                             </td>
                         </tr>
                     {% endfor %}
+
+                    <!-- Totais Gerais -->
+                    <tr class="row-total">
+                        <td colspan="4" class="ps-3">TOTAIS GERAIS</td>
+                        <td>
+                            Total Crédito: R$ {{ total_creditos|brl }}
+                            &nbsp;|&nbsp;
+                            Total Débito: R$ {{ total_debitos|brl }}
+                        </td>
+                        <td></td>
+                        <td class="saldo-col pe-3 {% if saldo_real >= 0 %}text-success{% else %}text-danger{% endif %}">
+                            Saldo Real: R$ {{ saldo_real|brl }}
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>
     </div>
-
-    <!-- Paginação -->
-    <nav class="mt-3">
-        <ul class="pagination justify-content-center">
-            {% if page_obj.has_previous %}
-                <li class="page-item">
-                    <a href="?page={{ page_obj.previous_page_number }}" class="page-link">Anterior</a>
-                </li>
-            {% endif %}
-            <li class="page-item disabled">
-                <span class="page-link">{{ page_obj.number }}/{{ page_obj.paginator.num_pages }}</span>
-            </li>
-            {% if page_obj.has_next %}
-                <li class="page-item">
-                    <a href="?page={{ page_obj.next_page_number }}" class="page-link">Próxima</a>
-                </li>
-            {% endif %}
-        </ul>
-    </nav>
+    <script src="{% static 'contabilidade/js/extrato.js' %}"></script>
 {% endblock %}

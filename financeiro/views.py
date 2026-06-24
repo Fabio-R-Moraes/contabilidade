@@ -1,5 +1,3 @@
-from django.forms.models import BaseModelForm
-from django.http import HttpResponse
 from django.views.generic import (
     ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
 )
@@ -14,11 +12,12 @@ from django.db import transaction
 from django.db.models import Sum, Case, When, Value, DecimalField
 from decimal import Decimal
 import datetime
-from .models import ContaCredora, ContaDevedora, Lancamento, Partida
+from .models import ContaCredora, ContaDevedora, Lancamento
 from .forms import (
     ContaCredoraForm, ContaDevedoraForm,
     LancamentoForm, PartidaFormSet
 )
+from itertools import groupby
 
 #Autenticacao
 class CustomLoginView(LoginView):
@@ -115,37 +114,63 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             total = lancamentos_mes.filter(tipo_despesa=tipo).count()
             por_tipo[label] = total
 
+        # Lançamento das duas semanas credoras
+        # Semana = Segunda a domingo
+        dia_semana = hoje.weekday()   # 0 = segunda, 6 = domingo
+        inicio_semana_atual = hoje - datetime.timedelta(days=dia_semana)
+        fim_semana_atual = inicio_semana_atual + datetime.timedelta(days=6)
+        inicio_semana_prox = fim_semana_atual + datetime.timedelta(days=1)
+        fim_semana_prox = inicio_semana_prox + datetime.timedelta(days=6)
+        zero_dc = Value(0, output_field=DecimalField(max_digits=9, decimal_places=2))
+
+        def _lanc_semana(inicio, fim):
+            return (
+                Lancamento.objects.filter(
+                    usuario=user,
+                    data__range=(inicio, fim),
+                    partidas__conta_credora__isnull=False,
+                ).distinct().annotate(
+                    valor_resultado = Sum(
+                        Case(
+                            When(partidas__tipo='DEBITO', then='partidas__valor'),
+                            default=zero_dc, output_field=DecimalField(max_digits=9, decimal_places=2),
+                        )
+                    ),
+                    _total_debitos = Sum(
+                        Case(
+                            When(partidas__tipo='DEBITO', then='partidas__valor'),
+                            default=zero_dc, output_field=DecimalField(max_digits=9, decimal_places=2),
+                        )
+                    ),
+                    _total_creditos = Sum(
+                        Case(
+                            When(partidas__tipo='CREDITO', then='partidas__valor'),
+                            default=zero_dc, output_field=DecimalField(max_digits=9, decimal_places=2),
+                        )
+                    ),
+                ).order_by('-data', '-criado_em')
+            )
+
         ctx.update({
             'contas_credoras': contas_credoras,
             'contas_devedoras': contas_devedoras,
             'total_credoras': total_credoras,
             'total_devedoras': total_devedoras,
             'saldo_liquido': total_credoras - total_devedoras,
-            'ultimos_lancamentos': Lancamento.objects.filter(usuario=user).annotate(
-                valor_lancamento = Sum(
-                    Case(
-                        When(partidas__tipo = 'DEBITO', then='partidas__valor'),
-                        default=Value(0),
-                        output_field=DecimalField(max_digits=9, decimal_places=2),
-                    )
-                ),
-                total_debitos_lancamento = Sum(
-                    Case(
-                        When(partidas__tipo = 'DEBITO', then='partidas__valor'),
-                        default=Value(0),
-                        output_field=DecimalField(max_digits=9, decimal_places=2),
-                    )
-                ),
-                total_creditos_lancamento = Sum(
-                    Case(
-                        When(partidas__tipo = 'CREDITO', then='partidas__valor'),
-                        default=Value(0),
-                        output_field=DecimalField(max_digits=9, decimal_places=2),
-                    )
-                ),
-            ).order_by('-data')[:5],
             'lancamentos_por_tipo': por_tipo,
             'total_lancamentos_mes': lancamentos_mes.count(),
+            #Semanas
+            'semana_atual': {
+                'inicio': inicio_semana_atual,
+                'fim': fim_semana_atual,
+                'lancamentos': _lanc_semana(inicio_semana_atual, fim_semana_atual),
+            },
+            'semana_proxima': {
+                'inicio': inicio_semana_prox,
+                'fim': fim_semana_prox,
+                'lancamentos': _lanc_semana(inicio_semana_prox, fim_semana_prox),
+            },
+            'hoje': hoje,
         })
 
         return ctx
@@ -214,7 +239,7 @@ class ContaDevedoraCreateView(LoginRequiredMixin, CreateView):
     form_class = ContaDevedoraForm
     template_name = 'conta_devedora/form.html'
     success_url = reverse_lazy('financeiro:conta_devedora_list')
-    login_url = reverse_lazy(':financeiro:login')
+    login_url = reverse_lazy('financeiro:login')
 
     def form_valid(self, form):
         form.instance.usuario = self.request.user
@@ -261,11 +286,11 @@ class LancamentoListView(LoginRequiredMixin, ListView):
         qs = (
             Lancamento.objects.filter(usuario=self.request.user).annotate(
                 _total_debitos = Sum(
-                    Case(When(partidas__tipo='DEBITO', then='partidas'), # type: ignore
+                    Case(When(partidas__tipo='DEBITO', then='partidas__valor'), # type: ignore
                          default=zero, output_field=DecimalField()) # type: ignore
                 ),
                 _total_creditos = Sum(
-                    Case(When(partidas__tipo='CREDITO', then='partidas'), # type: ignore
+                    Case(When(partidas__tipo='CREDITO', then='partidas__valor'), # type: ignore
                          default=zero, output_field=DecimalField()) # type: ignore
                 ),
             )
@@ -400,6 +425,18 @@ def _qs_lancamentos_anotados(lancamentos_qs, filtro_conta):
 
     return lancamentos_qs.annotate(
         #Valor e tipo da partida desta conta no lançamento
+        total_debitos = Sum(
+            Case(
+                When(partidas__tipo='DEBITO', then='partidas__valor'),
+                output_field=DecimalField()
+            )
+        ),
+        total_creditos = Sum(
+            Case(
+                When(partidas__tipo='CREDITO', then='partidas__valor'),
+                output_field=DecimalField()
+            )
+        ),
         valor_partida_lancamento = Sum(
             Case(
                 When(**when_debito_conta, then='partidas__valor'),
@@ -419,54 +456,78 @@ def _qs_lancamentos_anotados(lancamentos_qs, filtro_conta):
                 output_field=DecimalField()
             )
         ),
-    ).order_by('-data', '-criado_em')
+    ).order_by('data', 'criado_em')
 
-class ExtratoContaCredoraView(LoginRequiredMixin, ListView):
+def _agrupar_por_data(lancamentos, saldo_inicial):
+    """
+    Agrupa lançamentos por data(ordem cronológica) calculando subtotal diário
+    e saldo acumulado. Retorna lista sde dicts pronto para o template.
+    """
+    grupos = []
+    saldo_acumulado = saldo_inicial
+    for data, items in groupby(lancamentos, key=lambda l: l.data):
+        items = list(items)
+        debitos_dia = sum(l.debito_conta_lancamentos or Decimal('0') for l in items)
+        creditos_dia = sum(l.credito_conta_lancamentos or Decimal('0') for l in items)
+        saldo_acumulado = saldo_acumulado + creditos_dia - debitos_dia
+        grupos.append({
+            'data': data,
+            'lancamentos': items,
+            'debitos_dia': debitos_dia,
+            'creditos_dia': creditos_dia,
+            'saldo_acumulado': saldo_acumulado,
+        })
+
+    return grupos
+
+class ExtratoContaCredoraView(LoginRequiredMixin, TemplateView):
     template_name = 'extrato_conta.html'
-    context_object_name = 'lancamentos'
-    paginate_by = 30
     login_url = reverse_lazy('financeiro:login')
-
-    def get_queryset(self):
-        self.conta = get_object_or_404(
-            ContaCredora, pk=self.kwargs['pk'], usuario=self.request.user
-        )
-
-        qs = Lancamento.objects.filter(
-            usuario=self.request.user,
-            partidas__conta_credora=self.conta,
-        ).distinct()
-
-        return _qs_lancamentos_anotados(qs, {'partidas__conta_credora': self.conta})
     
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['conta'] = self.conta
+        conta = get_object_or_404(
+            ContaCredora, pk=self.kwargs['pk'], usuario=self.request.user
+        )
+        qs = Lancamento.objects.filter(
+            usuario=self.request.user,
+            partidas__conta_credora=conta,
+        ).distinct()
+        lancamentos = list(_qs_lancamentos_anotados(qs, {'partidas__conta_credora': conta}))
+        total_debitos = sum(l.debito_conta_lancamentos or Decimal('0') for l in lancamentos)
+        total_creditos = sum(l.credito_conta_lancamentos or Decimal('0') for l in lancamentos)
+        ctx['conta'] = conta
         ctx['tipo_conta'] = 'credora'
+        ctx['grupos'] = _agrupar_por_data(lancamentos, conta.saldo_inicial)
+        ctx['total_debitos'] = total_debitos
+        ctx['total_creditos'] = total_creditos
+        ctx['saldo_real'] = (conta.saldo_inicial + total_creditos) - total_debitos
         
         return ctx
     
-class ExtratoContaDevedoraView(LoginRequiredMixin, ListView):
+class ExtratoContaDevedoraView(LoginRequiredMixin, TemplateView):
     template_name = 'extrato_conta.html'
-    context_object_name = 'lancamentos'
-    paginate_by = 30
     login_url = reverse_lazy('financeiro:login')
-
-    def get_queryset(self):
-        self.conta = get_object_or_404(
-            ContaDevedora, pk=self.kwargs['pk'], usuario=self.request.user
-        )
-
-        qs = Lancamento.objects.filter(
-            usuario=self.request.user,
-            partidas__conta_devedora=self.conta,
-        ).distinct()
-
-        return _qs_lancamentos_anotados(qs, {'partidas__conta_devedora': self.conta})
     
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['conta'] = self.conta
+        conta = get_object_or_404(
+            ContaDevedora, pk=self.kwargs['pk'], usuario=self.request.user
+        )
+        qs = Lancamento.objects.filter(
+            usuario=self.request.user,
+            partidas__conta_devedora=conta,
+        ).distinct()
+        lancamentos = list(_qs_lancamentos_anotados(qs, {'partidas__conta_devedora': conta}))
+        total_debitos = sum(l.debito_conta_lancamentos or Decimal('0') for l in lancamentos)
+        total_creditos = sum(l.credito_conta_lancamentos or Decimal('0') for l in lancamentos)
+
+
+        ctx['conta'] = conta
         ctx['tipo_conta'] = 'devedora'
+        ctx['grupos'] = _agrupar_por_data(lancamentos, conta.saldo_inicial)
+        ctx['total_debitos'] = total_debitos
+        ctx['total_creditos'] = total_creditos
+        ctx['saldo_real'] = (conta.saldo_inicial + total_creditos) - total_debitos
         
         return ctx
