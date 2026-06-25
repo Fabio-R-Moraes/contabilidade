@@ -4,7 +4,7 @@ from django.views.generic import (
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth import login
+from django.contrib.auth import login, logout
 from django.urls import reverse_lazy
 from django.shortcuts import redirect, get_object_or_404
 from django.contrib import messages
@@ -18,6 +18,8 @@ from .forms import (
     LancamentoForm, PartidaFormSet
 )
 from itertools import groupby
+from django.views import View
+from django.http import HttpResponse
 
 #Autenticacao
 class CustomLoginView(LoginView):
@@ -37,6 +39,17 @@ class RegistroView(CreateView):
         login(self.request, user)
         messages.success(self.request, f'Bem-vindo, { user.username }! Sua conta foi criada...')
         return redirect(self.success_url) # type: ignore
+    
+class AutoLogoutView(View):
+    """
+    Endpoint chamado pelo sendBeacon do browser ao fechar aba/janela.
+    Recebe POST com CSRF token embutido no corpo e encerra a sessão.
+    """
+    def post(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            logout(request)
+
+        return HttpResponse(status=204) #Sem conteúdo
     
 #Dashboard
 class DashboardView(LoginRequiredMixin, TemplateView):
@@ -456,7 +469,7 @@ def _qs_lancamentos_anotados(lancamentos_qs, filtro_conta):
                 output_field=DecimalField()
             )
         ),
-    ).order_by('data', 'criado_em')
+    ).order_by('data', 'valor_partida_lancamento', 'criado_em')
 
 def _agrupar_por_data(lancamentos, saldo_inicial):
     """

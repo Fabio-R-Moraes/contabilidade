@@ -4,7 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Finança Familiar{% endblock %}</title>
+
+    <!-- Fonte do Google -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Merienda:wght@300..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
+    <title>{% block title %}Finanças Família M&M{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.0/font/bootstrap-icons.min.css" rel="stylesheet">
     
@@ -13,11 +18,11 @@
         <link rel="stylesheet" href="{% static 'contabilidade/css/styles.css' %}">
     {% endblock %}
 </head>
-<body>
+<body data-auto-logout-url="{% url 'financeiro:auto_logout' %}"">
     {% if user.is_authenticated %}
         <div class="sidebar">
             <div class="brand">
-                <h4><i class="bi bi-house-heart-fill me-2"></i>Finança Familiar</h4>
+                <h4><i class="bi bi-house-heart-fill me-2"></i>Finanças Família M&M</h4>
                 <small>{{ user.get_full_name|default:user.username }}</small>
             </div>
             <nav class="mt-2">
@@ -70,6 +75,9 @@
     {% endif %}
     {% block extra_js %}
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        {% if user.is_authenticated %}
+            <script src="{% static 'contabilidade/js/auto_logout.js' %}"></script>
+        {% endif %}
     {% endblock %}
 </body>
 </html>
