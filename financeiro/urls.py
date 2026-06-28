@@ -35,3 +35,4 @@ urlpatterns = [
     path('contas/credoras/<int:pk>/extrato/', views.ExtratoContaCredoraView.as_view(), name='extrato_credora'),
     path('contas/devedoras/<int:pk>/extrato/', views.ExtratoContaDevedoraView.as_view(), name='extrato_devedora'),
 ]
+

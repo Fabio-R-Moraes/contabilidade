@@ -24,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY', 'INSECURE')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True if os.environ.get('DEBUG') == 1 else False
+DEBUG = True  # if os.environ.get('DEBUG') == 1 else False
 
 ALLOWED_HOSTS : list[str] = ['*']
 
@@ -121,9 +121,12 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATIC_FILES_DIRS = [
     os.path.join(BASE_DIR, 'financeiro', 'static'),
     ]
+MEDIA_URL = 'media/'
+MEDIA_ROOT = BASE_DIR / 'media'
