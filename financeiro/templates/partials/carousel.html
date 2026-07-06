@@ -1,0 +1,68 @@
+{% load static %}
+    <div class="container-fluid">
+        <div id="main-slider" class="carousel slide" data-bs-ride="carousel">
+            <div class="carousel-indicators">
+                <button type="button" data-bs-target="#mainSlider" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                <button type="button" data-bs-target="#mainSlider" data-bs-slide-to="1" aria-label="Slide 2"></button>
+                <button type="button" data-bs-target="#mainSlider" data-bs-slide-to="2" aria-label="Slide 3"></button>
+            </div>
+            <div class="carousel-inner">
+                <div class="carousel-item active" data-bs-interval="30000">
+                    <img src="{% static 'contabilidade/images/banner1.png' %}" class="d-block w-100" alt="...">
+                    <div class="carousel-caption d-md-block">
+                        <!-- Semana Atual -->
+                        <div class="col-12">
+                            <div class="card-h-100">
+                                <div class="card semana-card semana-atual">
+                                    <div class="card-header">
+                                        <i class="bi bi-calendar-check me-2"></i> Semana Atual
+                                        <span class="fw-normal ms-1 opacity-75">
+                                            {{ semana_atual.inicio|date:"d/m" }} a {{ semana_atual.fim|date:"d/m" }}
+                                        </span>
+                                    </div>
+                                    <div class="card-body p-0">
+                                        {% include 'partials/semana.html' with semana=semana_atual %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="carousel-item" data-bs-interval="30000">
+                    <img src="{% static 'contabilidade/images/banner2.png' %}" class="d-block w-100" alt="...">
+                    <div class="carousel-caption d-md-block">
+                        <!-- Próxima Semana -->
+                        <div class="col-12">
+                            <div class="card-h-100">
+                                <div class="card semana-card semana-proxima">
+                                    <div class="card-header">
+                                        <i class="bi bi-calendar-plus me-2"></i> Próxima Semana
+                                        <span class="fw-normal ms-1 opacity-75">
+                                            {{ semana_proxima.inicio|date:"d/m" }} a {{ semana_proxima.fim|date:"d/m" }}
+                                        </span>
+                                    </div>
+                                    <div class="card-body p-0">
+                                        {% include 'partials/semana.html' with semana=semana_proxima %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="carousel-item" data-bs-interval="30000">
+                    <img src="{% static 'contabilidade/images/banner3.png' %}" class="d-block w-100" alt="...">
+                    <h2>Quer criar um e-commerce?</h2>
+						<p>Conte conosco, temos mais de 30 anos de portfólio.</p>
+						<a href="#" class="main-btn">Ver portfólio</a>
+                </div>
+            </div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#main-slider" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#main-slider" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+            </button>
+        </div>
+    </div>

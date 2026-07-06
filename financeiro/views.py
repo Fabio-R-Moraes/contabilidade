@@ -146,6 +146,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                     valor_resultado = Sum(
                         Case(
                             When(partidas__tipo='DEBITO', then='partidas__valor'),
+                            When(partidas__tipo='CREDITO', then='partidas__valor'),
                             default=zero_dc, output_field=DecimalField(max_digits=9, decimal_places=2),
                         )
                     ),
@@ -176,12 +177,17 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             'semana_atual': {
                 'inicio': inicio_semana_atual,
                 'fim': fim_semana_atual,
-                'lancamentos': _lanc_semana(inicio_semana_atual, fim_semana_atual),
+                'lancamentos': list(_lanc_semana(inicio_semana_atual, fim_semana_atual).exclude(
+                    tipo_despesa='NORMAL'
+                ).order_by(
+                    '-data', '-criado_em'
+                )[:10]),
             },
             'semana_proxima': {
                 'inicio': inicio_semana_prox,
                 'fim': fim_semana_prox,
-                'lancamentos': _lanc_semana(inicio_semana_prox, fim_semana_prox),
+                'lancamentos': _lanc_semana(inicio_semana_prox, fim_semana_prox).exclude(
+                    tipo_despesa='NORMAL')[:10],
             },
             'hoje': hoje,
         })

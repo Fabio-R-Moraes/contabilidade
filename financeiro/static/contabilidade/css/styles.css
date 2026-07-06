@@ -166,6 +166,23 @@ body {
     font-weight: 700;
 }
 
+/* Slider */
+.container-fluid {
+    padding: 0;
+}
+
+#main-slider .carousel-inner, #main-slider .carousel-item {
+    height: 90vh;
+}
+
+#main-slider .carousel-caption {
+    top: 3%;
+}
+
+.carousel-indicators .active {
+    background-color: #65DAF9;
+}
+
 /* Dashboard */
 .semana-card .card-header {
     font-size: .85rem;
@@ -185,6 +202,7 @@ body {
 
 .semana-table {
     font-size: .8rem;
+    text-align: left;
 }
 
 .semana-table td, .semana-table th {
