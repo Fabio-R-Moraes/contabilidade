@@ -51,9 +51,11 @@
                 </div>
                 <div class="carousel-item" data-bs-interval="30000">
                     <img src="{% static 'contabilidade/images/banner3.png' %}" class="d-block w-100" alt="...">
-                    <h2>Quer criar um e-commerce?</h2>
-						<p>Conte conosco, temos mais de 30 anos de portfólio.</p>
-						<a href="#" class="main-btn">Ver portfólio</a>
+                    <div class="carousel-caption d-md-block">
+                        <h2>Quer fazer um lançamento contábil?</h2>
+                        <p>Aproveite e clique no botão abaixo...</p>
+                        <a href="{% url 'financeiro:lancamento_create' %}" class="main-btn">Lançamento</a>
+                    </div>
                 </div>
             </div>
             <button class="carousel-control-prev" type="button" data-bs-target="#main-slider" data-bs-slide="prev">

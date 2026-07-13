@@ -21,7 +21,7 @@
         <link rel="stylesheet" href="{% static 'contabilidade/css/styles.css' %}">
     {% endblock %}
 </head>
-<body data-auto-logout-url="{% url 'financeiro:auto_logout' %}"">
+<body data-auto-logout-url="{% url 'financeiro:auto_logout' %}">
     {% if user.is_authenticated %}
         <div class="sidebar">
             <div class="brand">
@@ -72,6 +72,7 @@
                 {% endif %}
                 {% block content %}{% endblock %}
             </div>
+            {% include 'partials/rodape.html' %}
         </div>
     {% else %}
         <div class="container-fluid">{% block auth_content %}{% endblock %}</div>
