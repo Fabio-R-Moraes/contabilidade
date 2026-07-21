@@ -27,10 +27,10 @@
                 {% for l in dia.list %}
                     <tr {% if l.data == hoje %}class="row-hoje"{% endif %}>
                         <td>
-                            {% if l.tipo_despesa == 'NORMAL' %}<span class="badge badge-normal" style="font-size: .65rem;">Normal</span>
-                            {% elif l.tipo_despesa == 'FIXA' %}<span class="badge badge-fixa" style="font-size: .65rem;">Fixa</span>
-                            {% elif l.tipo_despesa == 'VARIAVEL' %}<span class="badge badge-variavel" style="font-size: .65rem;">Variável</span>
-                            {% elif l.tipo_despesa == 'SUPERFLUA' %}<span class="badge badge-superflua" style="font-size: .65rem;">Supérflua</span>
+                            {% if l.tipo_despesa == 'NORMAL' %}<span class="badge badge-normal" style="font-size: .55rem;">Normal</span>
+                            {% elif l.tipo_despesa == 'FIXA' %}<span class="badge badge-fixa" style="font-size: .55rem;">Fixa</span>
+                            {% elif l.tipo_despesa == 'VARIAVEL' %}<span class="badge badge-variavel" style="font-size: .55rem;">Variável</span>
+                            {% elif l.tipo_despesa == 'SUPERFLUA' %}<span class="badge badge-superflua" style="font-size: .55rem;">Supérflua</span>
                             {% endif %}
                         </td>
                         <td>

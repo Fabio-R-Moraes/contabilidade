@@ -315,7 +315,7 @@ body {
     border-top: 2px solid #dc3545;
 }
 
-.row.row-subtotal.negativo td {
+.row-subtotal.negativo td {
     background: #f8d7da;
     color: #721c24;
     border-top-color: #dc3545;
@@ -392,7 +392,7 @@ input.check-lancamento {
     color: #3ec1d5;
 }
 
-/* Resposnsivo */
+/* Responsivo */
 @media (max-width: 768px) {
     /* Base */
     body {
@@ -411,23 +411,40 @@ input.check-lancamento {
     }
 
     /* Slider */
-    #main-slider .carousel-inner, #main-slider .carousel-item {
-        height: auto;
-    }
+	#main-slider .carousel-inner, #main-slider .carousel-item {
+		height: auto;
+	}
 
     #main-slider .carousel-caption h2 {
-        font-size: 15px;
-        margin-bottom: 40px;
+		font-size: .4rem;
+		margin-bottom: 20px;
+	}
+
+	#main-slider .carousel-caption p {
+		display: none;
+	}
+
+	.main-btn {
+        font-size: .5rem;
+        padding: 2px 7px;
     }
 
-    #main-slider .carousel-caption p {
-        display: none;
+    /* Listas Semanais */
+    .badge {
+        font-size: .25rem;
+    }
+
+    .semana-card .card-header {
+        font-size: .45rem;
+    }
+
+    .semana-table {
+        font-size: .4rem;
+        text-align: left;
+    }
+
+    .semana-table td, .semana-table th {
+        font-size: .4rem;
     }
     
-    .main-btn {
-        width: 100px;
-        height: 300px;
-        padding: 4px 9px;
-        font-size: 12px;
-    }
 }
