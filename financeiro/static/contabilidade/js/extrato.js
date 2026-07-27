@@ -1,5 +1,14 @@
+/*=========================================================
+   Finança Familiar - Extrato de conta
+   Checkboxes de conferência + scroll automático para o final
+===========================================================*/
+
 document.addEventListener('DOMContentLoaded', function() {
-    const STORAGE_KEY = 'extrato_checks_{{ conta.pk }}_{{ tipo_conta }}';
+    //Configuração via data-attributes
+    const _meta = document.getElementById('extrato-meta');
+    const contaPk = _meta ? _meta.getAttribute('data-conta-pk') : '';
+    const tipoConta = _meta ? _meta.getAttribute('data-tipo-conta') : '';
+    const STORAGE_KEY = 'extrato_checks_' + contaPk + '_' + tipoConta;
 
     //Carregar estado salvo em localStorage
     function getChecks() {

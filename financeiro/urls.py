@@ -34,5 +34,7 @@ urlpatterns = [
     #Extrato por Conta
     path('contas/credoras/<int:pk>/extrato/', views.ExtratoContaCredoraView.as_view(), name='extrato_credora'),
     path('contas/devedoras/<int:pk>/extrato/', views.ExtratoContaDevedoraView.as_view(), name='extrato_devedora'),
+    path('contas/credoras/<int:pk>/grafico/', views.GraficoExtratoCredoraView.as_view(), name='grafico_credora'),
+    path('contas/devedoras/<int:pk>/grafico/', views.GraficoExtratoDevedoraView.as_view(), name='grafico_devedora'),
 ]
 

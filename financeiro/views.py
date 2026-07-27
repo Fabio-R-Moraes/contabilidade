@@ -5,7 +5,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login, logout
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.shortcuts import redirect, get_object_or_404
 from django.contrib import messages
 from django.db import transaction
@@ -19,7 +19,12 @@ from .forms import (
 )
 from itertools import groupby
 from django.views import View
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
+import calendar
+import matplotlib
+import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
+import io
 
 #Autenticacao
 class CustomLoginView(LoginView):
@@ -499,6 +504,143 @@ def _agrupar_por_data(lancamentos, saldo_inicial):
 
     return grupos
 
+def _dados_grafico_mes(lancamentos_qs, filtro_conta, ano, mes):
+    """
+    Retorna dados diarios para o grafico: labels, creditos, debitos e saldo acumulado.
+    """
+    zero = Value(0, output_field=DecimalField(max_digits=9, decimal_places=2))
+    when_deb = {**filtro_conta, 'partidas__tipo': 'DEBITO'}
+    when_cred = {**filtro_conta, 'partidas__tipo': 'CREDITO'}
+
+    registros = (
+        lancamentos_qs.filter(data__year=ano, data__month=mes).values('data').annotate(
+            debitos = Sum(Case(When(**when_deb, then='partidas__valor'), default=zero, output_field=DecimalField())),
+            creditos = Sum(Case(When(**when_cred, then='partidas__valor'), default=zero, output_field=DecimalField())),
+        ).order_by('data')
+    )
+
+    #Montar o dicionario data --> valores
+    por_dia = {r['data']: r for r in registros}
+
+    #Preencher todos os dias do mes
+    _, num_dias = calendar.monthrange(ano, mes)
+    labels, debitos, creditos, saldos = [], [], [], []
+    saldo = Decimal('0')
+    for d in range(1, num_dias + 1):
+        data = datetime.date(ano, mes, d)
+        reg = por_dia.get(data)
+        deb = float(reg['debitos'] or 0) if reg else 0
+        cred = float(reg['creditos'] or 0) if reg else 0
+        labels.append(f'{d:02d}')
+        debitos.append(deb)
+        creditos.append(cred)
+
+    return {'labels': labels, 'debitos': debitos, 'creditos': creditos}
+
+def _fmt_brlv(v):
+    """Formatar valor float como R$ no padrão pt-BR"""
+    return f'R$ {v:,.2f}'.replace(',', 'X').replace('.', ',').replace('X', '.')
+
+def _gerar_grafico_png(dados, titulo, ano, mes):
+    """Gera o gráfico como PNG em memória usando Matplotlib e retorna HHttpResponse"""
+    matplotlib.use('Agg') #Backend sem tela - obrigatório no servidor
+
+    MESES_PT = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+                'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
+    labels = dados['labels']
+    debitos = dados['debitos']
+    creditos = dados['creditos']
+    xs = list(range(1, len(labels) + 1))
+
+    fig, ax = plt.subplots(figsize=(14, 5))
+    fig.patch.set_facecolor('#f0f4f8')
+    ax.set_facecolor('#f8fafc')
+
+    #Linhas
+    ax.plot(xs, creditos, color='#27ae60', linewidth=1.5, label='Créditos', marker='o', markersize=2, zorder=2)
+    ax.plot(xs, debitos, color='#e74c3c', linewidth=1.5, label='Débitos', marker='o', markersize=2, zorder=2)
+
+    #Linha de zero
+    ax.axhline(0, color='#aaa', linewidth=0.8, linestyle='--')
+
+    #Anotações de valor nos pontos com movimentos
+    def anotar(serie, cor, offset_y):
+        for x, v in zip(xs, serie):
+            if v != 0:
+                ax.annotate(
+                    _fmt_brlv(v),
+                    xy = (x,v),
+                    xytext = (0, offset_y),
+                    textcoords = 'offset points',
+                    ha = 'center',
+                    va = 'bottom' if offset_y > 0 else 'top',
+                    fontsize = 6.5,
+                    color = cor,
+                    fontweight = 'bold',
+                    bbox = dict(boxstyle='round, pad=0.15', fc='white', ec=cor, alpha=0.7, linewidth=0.5),
+                )
+
+    anotar(creditos, '#27ae60', offset_y=10)  #créditos: valor acima do ponto
+    anotar(debitos, '#e74c3c', offset_y=10)   #débitos: valor acima do ponto
+
+    #Formatação dos eixos
+    ax.set_xticks(xs)
+    ax.set_xticklabels(labels, fontsize=7)
+    ax.yaxis.set_major_formatter(
+        ticker.FuncFormatter(lambda v, _: f'R$ {v:,.2f}'.replace(',', 'X').replace('.', ',').replace('X', '.'))
+    )
+    ax.tick_params(axis='y', labelsize=8)
+
+    ax.set_title(f'{titulo} - {MESES_PT[mes - 1]}/{ano}', fontsize=12, fontweight='bold', color='#1a3a5c', pad=12)
+    ax.legend(loc='upper left', fontsize=9)
+    ax.grid(axis='y', color='#ddd', linewidth=0.7)
+    ax.spines[['top', 'right']].set_visible(False)
+
+    plt.tight_layout()
+
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png', dpi=120, bbox_inches='tight')
+    plt.close(fig)
+    buf.seek(0)
+
+    return HttpResponse(buf.read(), content_type='image/png')
+
+class GraficoExtratoCredoraView(LoginRequiredMixin, View):
+    """Endpoint JSON para o grafico do extrato de conta credora"""
+    login_url = reverse_lazy('financeiro:login')
+
+    def get(self, request, pk, *args, **kwargs):
+        conta = get_object_or_404(ContaCredora, pk=pk, usuario=request.user)
+
+        try:
+            ano = int(request.GET.get('ano', datetime.date.today().year))
+            mes = int(request.GET.get('mes', datetime.date.today().month))
+        except ValueError:
+            return JsonResponse({'error': 'Parâmetro Inválidos'}, status=400)
+
+        qs = Lancamento.objects.filter(usuario=request.user, partidas__conta_credora=conta).distinct()
+        dados = _dados_grafico_mes(qs, {'partidas__conta_credora': conta}, ano, mes)
+
+        return _gerar_grafico_png(dados, conta.nome, ano, mes)
+
+class GraficoExtratoDevedoraView(LoginRequiredMixin, View):
+    """Endpoint JSON para o grafico do extrato de conta devedora"""
+    login_url = reverse_lazy('financeiro:login')
+
+    def get(self, request, pk, *args, **kwargs):
+        conta = get_object_or_404(ContaDevedora, pk=pk, usuario=request.user)
+
+        try:
+            ano = int(request.GET.get('ano', datetime.date.today().year))
+            mes = int(request.GET.get('mes', datetime.date.today().month))
+        except ValueError:
+            return JsonResponse({'error': 'Parâmetro Inválidos'}, status=400)
+
+        qs = Lancamento.objects.filter(usuario=request.user, partidas__conta_devedora=conta).distinct()
+        dados = _dados_grafico_mes(qs, {'partidas__conta_devedora': conta}, ano, mes)
+
+        return _gerar_grafico_png(dados, conta.nome, ano, mes)
+
 class ExtratoContaCredoraView(LoginRequiredMixin, TemplateView):
     template_name = 'extrato_conta.html'
     login_url = reverse_lazy('financeiro:login')
@@ -521,6 +663,17 @@ class ExtratoContaCredoraView(LoginRequiredMixin, TemplateView):
         ctx['total_debitos'] = total_debitos
         ctx['total_creditos'] = total_creditos
         ctx['saldo_real'] = (conta.saldo_inicial + total_creditos) - total_debitos
+        MESES_PT = [
+            (1, 'Janeiro'), (2, 'Fevereiro'), (3, 'Março'), (4, 'Abril'),
+            (5, 'Maio'), (6, 'Junho'), (7, 'Julho'), (8, 'Agosto'),
+            (9, 'Setembro'), (10, 'Outubro'), (11, 'Novembro'), (12, 'Dezembro'),
+        ]
+        mes_grafico = int(self.request.GET.get('g_mes', datetime.date.today().month))
+        ano_grafico = int(self.request.GET.get('g_ano', datetime.date.today().year))
+        ctx['grafico_url'] = reverse('financeiro:grafico_credora', kwargs={'pk':conta.pk})
+        ctx['mes_grafico'] = mes_grafico
+        ctx['ano_grafico'] = ano_grafico
+        ctx['meses_choices'] = MESES_PT
         
         return ctx
     
@@ -548,5 +701,16 @@ class ExtratoContaDevedoraView(LoginRequiredMixin, TemplateView):
         ctx['total_debitos'] = total_debitos
         ctx['total_creditos'] = total_creditos
         ctx['saldo_real'] = (conta.saldo_inicial + total_creditos) - total_debitos
+        MESES_PT = [
+            (1, 'Janeiro'), (2, 'Fevereiro'), (3, 'Março'), (4, 'Abril'),
+            (5, 'Maio'), (6, 'Junho'), (7, 'Julho'), (8, 'Agosto'),
+            (9, 'Setembro'), (10, 'Outubro'), (11, 'Novembro'), (12, 'Dezembro'),
+        ]
+        mes_grafico = int(self.request.GET.get('g_mes', datetime.date.today().month))
+        ano_grafico = int(self.request.GET.get('g_ano', datetime.date.today().year))
+        ctx['grafico_url'] = reverse('financeiro:grafico_devedora', kwargs={'pk':conta.pk})
+        ctx['mes_grafico'] = mes_grafico
+        ctx['ano_grafico'] = ano_grafico
+        ctx['meses_choices'] = MESES_PT
         
         return ctx

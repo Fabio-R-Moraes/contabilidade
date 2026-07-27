@@ -167,5 +167,32 @@
             </table>
         </div>
     </div>
-    <script src="{% static 'contabilidade/js/extrato.js' %}"></script>
+
+    <!-- Grafico -->
+    <div class="card-mt-4">
+        <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <span><i class="bi bi-graph-up me-2"></i> Evolução Mensal</span>
+            <form method="get" class="d-flex gap-2 align-items-center" id="form-grafico">
+                {#Preservar âncora ao recarregar#}
+                <select name="g_mes" class="form-select form-select-sm" style="width: auto;">
+                    {% for n, nome in meses_choices %}
+                        <option value="{{ n }}" {% if n == mes_grafico %}selected{% endif %}>{{ nome }}</option>
+                    {% endfor %}
+                </select>
+                <input type="number" name="g_ano" class="form-control form-control-sm"
+                    min="2000" max="2100" style="width: 90px;" value="{{ ano_grafico }}">
+                <button type="submit" class="btn btn-sm-btn-primary">
+                    <i class="bi bi-search me-1"></i> Carregar
+                </button>
+            </form>
+        </div>
+        <div class="card-body text-center p-2">
+            <img src="{{ grafico_url }}?mes={{ mes_grafico }}&ano={{ ano_grafico }}"
+            aslt="Gráfico de evolução mensal"
+            class="img-fluid rounded"
+            style="max-width: 100%;">
+        </div>
+    </div>
+
+    <script src="{% static 'contabilidade/js/extrato.js' %}?v=3"></script>
 {% endblock %}
