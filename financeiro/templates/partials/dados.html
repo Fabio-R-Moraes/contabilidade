@@ -1,0 +1,44 @@
+{% load static %}
+    <div class="fun-facts">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-6">
+            <div class="left-content">
+              <span>Dados estatísticos do sistema</span>
+              <h2>Alguns dados das <em>finanças familiares</em></h2>
+              <p>Esta seção reúne os indicadores estatísticos e financeiros relativos ao patrimônio da família Moreira de Moraes, permitindo a análise detalhada e o acompanhamento da utilização da plataforma contábil.
+              <br><br>Utilize o botão abaixo para registrar um novo lançamento contábil.</p>
+              <a href="{% url 'financeiro:lancamento_create' %}" class="filled-button">Lançamento</a>
+            </div>
+          </div>
+          <div class="col-md-6 align-self-center">
+            <div class="row">
+              <div class="col-md-6">
+                <div class="count-area-content">
+                  <div class="count-digit">{{ total_lancamentos }}</div>
+                  <div class="count-title">Lançamentos</div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="count-area-content">
+                  <div class="count-digit">{{ media_mensal }}</div>
+                  <div class="count-title">Lançamentos por mês</div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="count-area-content">
+                  <div class="count-digit">{{ total_credoras }}</div>
+                  <div class="count-title">Contas credoras</div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="count-area-content">
+                  <div class="count-digit">{{ total_devedoras }}</div>
+                  <div class="count-title">Contas devedoras</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>

@@ -6,7 +6,8 @@ app_name = 'financeiro'
 
 urlpatterns = [
     #Auth
-    path('', views.DashboardView.as_view(),name='dashboard'),
+    path('', views.IndexView.as_view(),name='index'),
+    path('dashboard/', views.DashboardView.as_view(),name='dashboard'),
     path('login/', views.CustomLoginView.as_view(), name='login'),
     path('logout/', LogoutView.as_view(next_page='financeiro:login'), name='logout'),
     path('auto-logout/', views.AutoLogoutView.as_view(), name='auto_logout'),

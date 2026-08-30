@@ -32,12 +32,12 @@ class CustomLoginView(LoginView):
     redirect_authenticated_user = True
 
     def get_success_url(self):
-        return reverse_lazy('financeiro:index')
+        return reverse_lazy('financeiro:dashboard')
 
 class RegistroView(CreateView):
     form_class = UserCreationForm
     template_name = 'auth/registro.html'
-    success_url = reverse_lazy('financeiro:index')
+    success_url = reverse_lazy('financeiro:dashboard')
 
     def form_valid(self, form):
         user = form.save()
@@ -56,106 +56,131 @@ class AutoLogoutView(View):
 
         return HttpResponse(status=204) #Sem conteúdo
 
+def home(request):
+    return render(request, 'index.html')
+
 #Dashboard
-def _contas_com_saldo_mes(user):
-    """Retorna contas credoras e devedoras anotadas com saldo do mês atual"""
-    hoje = datetime.date.today()
-    ano, mes = hoje.year, hoje.month
+class DashboardView(LoginRequiredMixin, TemplateView):
+    template_name = 'dashboard.html'
+    login_url = reverse_lazy('financeiro:login')
 
-    contas_credoras = ContaCredora.objects.filter(usuario=user, ativa=True).order_by('nome').annotate(
-        saldo_mes = Sum(
-            Case(
-                When(
-                    partidas__lancamento__data__year = ano,
-                    partidas__lancamento__data__month = mes,
-                    partidas__tipo = 'CREDITO',
-                    then='partidas__valor',
-                ),
-                default=Value(0),
-                output_field=DecimalField(max_digits=9, decimal_places=2),
-            )
-        ) - Sum(
-            Case(
-                When(
-                    partidas__lancamento__data__year = ano,
-                    partidas__lancamento__data__month = mes,
-                    partidas__tipo = 'DEBITO',
-                    then='partidas__valor',
-                ),
-                default=Value(0),
-                output_field=DecimalField(max_digits=9, decimal_places=2),
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        user = self.request.user
+        hoje = datetime.date.today()
+        ano, mes = hoje.year, hoje.month
+
+        contas_credoras = ContaCredora.objects.filter(usuario=user, ativa=True).order_by('nome').annotate(
+            saldo_mes = Sum(
+                Case(
+                    When(
+                        partidas__lancamento__data__year = ano,
+                        partidas__lancamento__data__month = mes,
+                        partidas__tipo = 'CREDITO',
+                        then='partidas__valor',
+                    ),
+                    default=Value(0),
+                    output_field=DecimalField(max_digits=9, decimal_places=2),
+                )
+            ) - Sum(
+                Case(
+                    When(
+                        partidas__lancamento__data__year = ano,
+                        partidas__lancamento__data__month = mes,
+                        partidas__tipo = 'DEBITO',
+                        then='partidas__valor',
+                    ),
+                    default=Value(0),
+                    output_field=DecimalField(max_digits=9, decimal_places=2),
+                )
             )
         )
-    )
-    contas_devedoras = ContaDevedora.objects.filter(usuario=user, ativa=True).order_by('nome').annotate(
-        saldo_mes = Sum(
-            Case(
-                When(
-                    partidas__lancamento__data__year = ano,
-                    partidas__lancamento__data__month = mes,
-                    partidas__tipo = 'CREDITO',
-                    then='partidas__valor',
-                ),
-                default=Value(0),
-                output_field=DecimalField(max_digits=9, decimal_places=2),
-            )
-        ) - Sum(
-            Case(
-                When(
-                    partidas__lancamento__data__year = ano,
-                    partidas__lancamento__data__month = mes,
-                    partidas__tipo = 'DEBITO',
-                    then='partidas__valor',
-                ),
-                default=Value(0),
-                output_field=DecimalField(max_digits=9, decimal_places=2),
+        contas_devedoras = ContaDevedora.objects.filter(usuario=user, ativa=True).order_by('nome').annotate(
+            saldo_mes = Sum(
+                Case(
+                    When(
+                        partidas__lancamento__data__year = ano,
+                        partidas__lancamento__data__month = mes,
+                        partidas__tipo = 'CREDITO',
+                        then='partidas__valor',
+                    ),
+                    default=Value(0),
+                    output_field=DecimalField(max_digits=9, decimal_places=2),
+                )
+            ) - Sum(
+                Case(
+                    When(
+                        partidas__lancamento__data__year = ano,
+                        partidas__lancamento__data__month = mes,
+                        partidas__tipo = 'DEBITO',
+                        then='partidas__valor',
+                    ),
+                    default=Value(0),
+                    output_field=DecimalField(max_digits=9, decimal_places=2),
+                )
             )
         )
-    )
 
-    return contas_credoras, contas_devedoras
+        total_credoras = contas_credoras.aggregate(t=Sum('saldo'))['t'] or Decimal('0')
+        total_devedoras = contas_devedoras.aggregate(t=Sum('saldo'))['t'] or Decimal('0')
 
-def _semanas_context(user):
-    """Retorna o contexto das 2 semanas para a IndexView"""
-    hoje = datetime.date.today()
-    # Semana = Segunda a domingo
-    dia_semana = hoje.weekday()   # 0 = segunda, 6 = domingo
-    inicio_semana_atual = hoje - datetime.timedelta(days=dia_semana)
-    fim_semana_atual = inicio_semana_atual + datetime.timedelta(days=6)
-    inicio_semana_prox = fim_semana_atual + datetime.timedelta(days=1)
-    fim_semana_prox = inicio_semana_prox + datetime.timedelta(days=6)
-    zero_dc = Value(0, output_field=DecimalField(max_digits=9, decimal_places=2))
-    
-    def _lanc_semana(inicio, fim):
-        return (
-            Lancamento.objects.filter(
-                usuario=user,
-                data__range=(inicio, fim),
-                partidas__conta_credora__isnull=False,
-            ).distinct().annotate(
-                valor_resultado = Sum(
-                    Case(
-                        When(partidas__tipo='DEBITO', then='partidas__valor'),
-                        When(partidas__tipo='CREDITO', then='partidas__valor'),
-                        default=zero_dc, output_field=DecimalField(max_digits=9, decimal_places=2),
-                    )
-                ),
-                _total_debitos = Sum(
-                    Case(
-                        When(partidas__tipo='DEBITO', then='partidas__valor'),
-                        default=zero_dc, output_field=DecimalField(max_digits=9, decimal_places=2),
-                    )
-                ),
-                _total_creditos = Sum(
-                    Case(
-                        When(partidas__tipo='CREDITO', then='partidas__valor'),
-                        default=zero_dc, output_field=DecimalField(max_digits=9, decimal_places=2),
-                    )
-                ),
-            ).order_by('-data', '-criado_em')
+        lancamentos_mes = Lancamento.objects.filter(
+            usuario=user,
+            data__year=hoje.year,
+            data__month=hoje.month
         )
-    
-    return {
+        por_tipo = {}
+
+        for tipo, label in Lancamento.TIPO_DESPESA_CHOICES:
+            total = lancamentos_mes.filter(tipo_despesa=tipo).count()
+            por_tipo[label] = total
+
+        # Lançamento das duas semanas credoras
+        # Semana = Segunda a domingo
+        dia_semana = hoje.weekday()   # 0 = segunda, 6 = domingo
+        inicio_semana_atual = hoje - datetime.timedelta(days=dia_semana)
+        fim_semana_atual = inicio_semana_atual + datetime.timedelta(days=6)
+        inicio_semana_prox = fim_semana_atual + datetime.timedelta(days=1)
+        fim_semana_prox = inicio_semana_prox + datetime.timedelta(days=6)
+        zero_dc = Value(0, output_field=DecimalField(max_digits=9, decimal_places=2))
+
+        def _lanc_semana(inicio, fim):
+            return (
+                Lancamento.objects.filter(
+                    usuario=user,
+                    data__range=(inicio, fim),
+                    partidas__conta_credora__isnull=False,
+                ).distinct().annotate(
+                    valor_resultado = Sum(
+                        Case(
+                            When(partidas__tipo='DEBITO', then='partidas__valor'),
+                            When(partidas__tipo='CREDITO', then='partidas__valor'),
+                            default=zero_dc, output_field=DecimalField(max_digits=9, decimal_places=2),
+                        )
+                    ),
+                    _total_debitos = Sum(
+                        Case(
+                            When(partidas__tipo='DEBITO', then='partidas__valor'),
+                            default=zero_dc, output_field=DecimalField(max_digits=9, decimal_places=2),
+                        )
+                    ),
+                    _total_creditos = Sum(
+                        Case(
+                            When(partidas__tipo='CREDITO', then='partidas__valor'),
+                            default=zero_dc, output_field=DecimalField(max_digits=9, decimal_places=2),
+                        )
+                    ),
+                ).order_by('-data', '-criado_em')
+            )
+
+        ctx.update({
+            'contas_credoras': contas_credoras,
+            'contas_devedoras': contas_devedoras,
+            'total_credoras': total_credoras,
+            'total_devedoras': total_devedoras,
+            'saldo_liquido': total_credoras - total_devedoras,
+            'lancamentos_por_tipo': por_tipo,
+            'total_lancamentos_mes': lancamentos_mes.count(),
             #Semanas
             'semana_atual': {
                 'inicio': inicio_semana_atual,
@@ -173,55 +198,6 @@ def _semanas_context(user):
                     tipo_despesa='NORMAL')[:10],
             },
             'hoje': hoje,
-        }
-
-class IndexView(LoginRequiredMixin, TemplateView):
-    """Página inicial, semana atual e próxima semana"""
-    template_name = 'index.html'
-    login_url = reverse_lazy('financeiro:login')
-
-    def get_context_data(self, **kwargs):
-        user = self.request.user
-        ctx = super().get_context_data(**kwargs)
-        ctx.update(_semanas_context(user))
-        total_lancamentos = Lancamento.objects.filter(usuario=user).count()
-        #Media mensal: total / meses distintos com lançamentos
-        meses_distintos = (
-            Lancamento.objects.filter(usuario=user).dates('data', 'month').count()
-        )
-        
-        media_mensal = round(total_lancamentos / meses_distintos) if meses_distintos else 0
-
-        #print(f"total={total_lancamentos}, meses={meses_distintos}, media={media_mensal}")
-        ctx.update({            
-            'total_lancamentos': total_lancamentos,
-            'media_mensal': media_mensal,
-            'total_credoras': ContaCredora.objects.filter(usuario=user, ativa=True).count(),
-            'total_devedoras': ContaDevedora.objects.filter(usuario=user, ativa=True).count(),
-        })
-
-        return ctx
-
-
-class DashboardView(LoginRequiredMixin, TemplateView):
-    template_name = 'dashboard.html'
-    login_url = reverse_lazy('financeiro:login')
-
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        user = self.request.user
-
-        credoras, devedoras = _contas_com_saldo_mes(user)
-
-        total_credoras = credoras.aggregate(t=Sum('saldo'))['t'] or Decimal('0')
-        total_devedoras = devedoras.aggregate(t=Sum('saldo'))['t'] or Decimal('0')
-
-        ctx.update({
-            'contas_credoras': credoras,
-            'contas_devedoras': devedoras,
-            'total_credoras': total_credoras,
-            'total_devedoras': total_devedoras,
-            'saldo_liquido': total_credoras - total_devedoras,
         })
 
         return ctx

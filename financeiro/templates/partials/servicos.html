@@ -1,0 +1,43 @@
+{% load static %}
+    <div class="services">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-12">
+            <div class="section-heading">
+              <h2><em>Serviços</em> Financeiros</h2>
+              <span>Serviços financeiros da Família Moreira de Moraes</span>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="service-item">
+              <img src="{% static 'contabilidade/images/service_01.jpg' %}" alt="">
+              <div class="down-content">
+                <h4>Dashboard Financeiro</h4>
+                <p>Dashboard com os saldos financeiros e links para os lançamentos relacionados a qualquer das contas.</p>
+                <a href="{% url 'financeiro:dashboard' %}" class="filled-button">Veja mais</a>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="service-item">
+              <img src="{% static 'contabilidade/images/service_02.jpg' %}" alt="">
+              <div class="down-content">
+                <h4>Contas Credoras</h4>
+                <p>Fique sabendo quais são as contas financeiras credoras da família e olhe o saldo de cada uma delas.</p>
+                <a href="{% url 'financeiro:conta_credora_list' %}" class="filled-button">Veja mais</a>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="service-item">
+              <img src="{% static 'contabilidade/images/service_03.jpg' %}" alt="">
+              <div class="down-content">
+                <h4>Contas Devedoras</h4>
+                <p>Entenda quais são as contas devedoras da família e veja como estão os saldos devedores no momento.</p>
+                <a href="{% url 'financeiro:conta_devedora_list' %}" class="filled-button">Veja mais</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>

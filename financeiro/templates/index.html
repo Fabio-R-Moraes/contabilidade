@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Finanças Família M&M{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block content %}
+    <!-- Page Content -->
+    {% include 'partials/carousel.html' %}
+    {% include 'partials/servicos.html' %}
+    {% include 'partials/dados.html' %}
+
+    <div class="more-info">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-12">
+            <div class="more-info-content">
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="left-image">
+                    <img src="{% static 'contabilidade/images/IMG-20251225-WA0009.jpg' %}" alt="">
+                  </div>
+                </div>
+                <div class="col-md-6 align-self-center">
+                  <div class="right-content">
+                    <span>Quem somos??</span>
+                    <h2>Saiba mais sobre <em>nossa família</em></h2>
+                    <p>Nossa família foi constituída em 2003 e fomos morar perto do aeroporto Afonso Pena em São José dos Pinhais, logo chegou o Vitinho e depois a Marcotinha, nossos doces filhos.<br><br>Hoje moramos em Curiitiba no Allto Boqueirão e as crianças já não são tão crianças assim...</p>
+                    <a href="#" class="filled-button">Saiba mais</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer Starts Here -->
+    <footer>
+      <div class="container">
+        <div class="row">
+          <div class="col-md-3 footer-item">
+            <h4>Finanças Familiares</h4>
+            <p>Sistema de contabilidade familiar para acompanhamento de recebimentos e despesas da família.</p>
+            <ul class="social-icons">
+              <li><a href="https://www.linkedin.com/in/f%C3%A1bio-moraes-13a990bb/" target="_blank"><i class="fa fa-linkedin"></i></a></li>
+              <li><a href="https://www.youtube.com/@fabiomoraes7849"><i class="bi bi-youtube"></i></a></li>
+              <li><a href="https://github.com/Fabio-R-Moraes/"><i class="bi bi-github"></i></a></li>
+            </ul>
+          </div>
+          <div class="col-md-3 footer-item">
+            <h4>Links Úteis</h4>
+            <ul class="menu-list">
+              <li><a href="https://portfoliomarianamoraes.com.br/">Portfólio da Maricotinha</a></li>
+              <li><a href="https://dash.cloudflare.com/4cb97d90184639a2f48a77f7a7652f1a/portfoliomarianamoraes.com.br">Dash do site da Maricota na Cloudflare</a></li>
+              <li><a href="https://console.cloud.google.com/compute/instances?hl=pt-BR&project=windy-shoreline-479423-a0&authuser=1&pli=1">Google Cloud da D. Rachel</a></li>
+              <li><a href="https://console.cloud.google.com/compute/instances?hl=pt-BR&project=contabilidade-500523&supportedpurview=project">Google Cloud da Fábio</a></li>
+            </ul>
+          </div>
+          <div class="col-md-3 footer-item">
+            <h4>Páginas Adicionais</h4>
+            <ul class="menu-list">
+              <li><a href="#">About Us</a></li>
+              <li><a href="#">How We Work</a></li>
+              <li><a href="#">Quick Support</a></li>
+              <li><a href="#">Contact Us</a></li>
+              <li><a href="#">Privacy Policy</a></li>
+            </ul>
+          </div>
+          <div class="col-md-3 footer-item last-item">
+            <h4>Contato</h4>
+            <div class="contact-form">
+              <form id="contact footer-contact" action="" method="post">
+                <div class="row">
+                  <div class="col-lg-12 col-md-12 col-sm-12">
+                    <fieldset>
+                      <input name="name" type="text" class="form-control" id="name" placeholder="Nome Completo" required="">
+                    </fieldset>
+                  </div>
+                  <div class="col-lg-12 col-md-12 col-sm-12">
+                    <fieldset>
+                      <input name="email" type="text" class="form-control" id="email" pattern="[^ @]*@[^ @]*" placeholder="Endereço de e-mail" required="">
+                    </fieldset>
+                  </div>
+                  <div class="col-lg-12">
+                    <fieldset>
+                      <textarea name="message" rows="6" class="form-control" id="message" placeholder="Sua mensagem" required=""></textarea>
+                    </fieldset>
+                  </div>
+                  <div class="col-lg-12">
+                    <fieldset>
+                      <button type="submit" id="form-submit" class="filled-button">Enviar Mensagem</button>
+                    </fieldset>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+    
+    <div class="sub-footer">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-12">
+            <p>Copyright &copy; 2026 Contabilidade Financeira Familiar<br>
+            Por: <a href="{% url 'financeiro:index' %}">Fábio Rodrigues de Moraes</a>
+          </p>
+          </div>
+        </div>
+      </div>
+    </div>
+{% endblock %}

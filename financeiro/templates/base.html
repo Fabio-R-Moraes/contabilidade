@@ -1,87 +1,129 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="Sistema financeiro familiar para cada usuário que tiver uma senha.">
+    <meta name="author" content="Fábio Moraes">
 
     <!-- Fonte do Google -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Merienda:wght@300..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css?family=Poppins:100,200,300,400,500,600,700,800,900&display=swap" rel="stylesheet">
+
     <title>{% block title %}Finanças Família M&M{% endblock %}</title>
 
     <!-- Bootstrap -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.0/font/bootstrap-icons.min.css" rel="stylesheet">
     
     <link rel="icon" href="{% static 'contabilidade/images/contabilidade.ico' %}" type="image/x-icon">
     {% block extra_css %}
         <link rel="stylesheet" href="{% static 'contabilidade/css/styles.css' %}">
     {% endblock %}
-</head>
-<body data-auto-logout-url="{% url 'financeiro:auto_logout' %}">
+
+    <link rel="icon" href="{% static 'contabilidade/images/contabilidade.ico' %}" type="image/x-icon">
+
+    <link rel="stylesheet" href="{% static 'contabilidade/css/styles.css' %}">
+
+    <!-- Additional CSS Files -->
+    <link rel="stylesheet" href="{% static 'contabilidade/css/fontawesome.css' %}">
+    <link rel="stylesheet" href="{% static 'contabilidade/css/templatemo-finance-business.css' %}">
+    <link rel="stylesheet" href="{% static 'contabilidade/css/owl.css' %}">
+  </head>
+  <body data-auto-logout-url="{% url 'financeiro:auto_logout' %}">
     {% if user.is_authenticated %}
-        <div class="sidebar">
-            <div class="brand">
-                <h4><i class="bi bi-house-heart-fill me-2"></i>Finanças Família M&M</h4>
-                <small>{{ user.get_full_name|default:user.username }}</small>
+        <!-- ***** Preloader Start ***** -->
+        <div id="preloader">
+            <div class="jumper">
+                <div></div>
+                <div></div>
+                <div></div>
             </div>
-            <nav class="mt-2">
-                <div class="nav-section">Geral</div>
-                <a href="{% url 'financeiro:dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
-                    <i class="bi bi-speedometer2 me-2"></i>Dashboard
-                </a>
-                <div class="nav-section">Contas</div>
-                <a href="{% url 'financeiro:conta_credora_list' %}" class="nav-link {% if 'conta_credora' in request.resolver_match.url_name %}active{% endif %}">
-                    <i class="bi bi-bank me-2"></i>Contas Credoras
-                </a>
-                <a href="{% url 'financeiro:conta_devedora_list' %}" class="nav-link {% if 'conta_devedora' in request.resolver_match.url_name %}active{% endif %}">
-                    <i class="bi bi-credit-card me-2"></i>Contas Devedoras
-                </a>
-                <div class="nav-section">Movimentações</div>
-                <a href="{% url 'financeiro:lancamento_list' %}" class="nav-link {% if 'lancamento' in request.resolver_match.url_name %}active{% endif %}">
-                    <i class="bi bi-journal-text me-2"></i>Lançamentos
-                </a>
-                <a href="{% url 'financeiro:lancamento_create' %}" class="nav-link">
-                    <i class="bi bi-plus-circle me-2"></i>Novo Lançamento
-                </a>
-                <div class="nav-section">Logout</div>
-                <form action="{% url 'financeiro:logout' %}" method="post">
-                    {% csrf_token %}
-                    <button type="submit" class="nav-link">
-                        <i class="bi bi-box-arrow-right me-2"></i>Sair
-                    </button>
-                </form>
-            </nav>
+        </div>  
+        <!-- ***** Preloader End ***** -->
+
+        <!-- Header -->
+        <div class="sub-header">
+        <div class="container">
+            <div class="row">
+            <div class="col-md-8 col-xs-12">
+                <ul class="left-info">
+                <li><a href="{% url 'financeiro:index' %}"><i class="fa fa-clock-o"></i>Segunda a Sexta 09:00-17:00</a></li>
+                <li><a href="mailto:fmoraes05@gmail.com"><i class="bi bi-envelope-at"></i>fmoraes05@gmail.com</a></li>
+                </ul>
+            </div>
+            <div class="col-md-4">
+                <ul class="right-icons">
+                <li><a href="https://www.linkedin.com/in/f%C3%A1bio-moraes-13a990bb/" target="_blank"><i class="fa fa-linkedin"></i></a></li>
+                <li><a href="https://www.youtube.com/@fabiomoraes7849" target="_blank"><i class="bi bi-youtube"></i></a></li>
+                <li><a href="https://github.com/Fabio-R-Moraes/" target="_blank"><i class="bi bi-github"></i></a></li>
+                </ul>
+            </div>
+            </div>
         </div>
-        <div class="main-content">
-            <div class="topbar">
-                <h5 class="mb-0">{% block page_title %}{% endblock %}</h5>
-                <span class="text-muted small">{{ user.username }}</span>
-            </div>
-            <div class="content-area">
-                {% if messages %}
-                    {% for msg in messages %}
-                        <div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show" role="alert">
-                            {{ msg }}
-                            <button type="button" class="btn-close" dta-bs-dismiss="alert"></button>
-                        </div>
-                    {% endfor %}
-                {% endif %}
-                {% block content %}{% endblock %}
-            </div>
-            {% include 'partials/rodape.html' %}
         </div>
+
+        <header class="">
+        <nav class="navbar navbar-expand-lg">
+            <div class="container">
+            <a class="navbar-brand" href="{% url 'financeiro:index' %}"><h2>Finanças Familiares</h2></a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarResponsive">
+                <ul class="navbar-nav ml-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="#top">Home
+                    <span class="sr-only">(current)</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="about.html">Sobre</a>
+                </li>  
+                <li class="nav-item">
+                    <a class="nav-link" href="services.html">Serviços</a>
+                </li>                          
+                <li class="nav-item">
+                    <a class="nav-link" href="contact.html">Contato</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="one-page.html">Dashboard</a>
+                </li>
+                </ul>
+            </div>
+            </div>
+        </nav>
+        </header>
+        {% block content %}{% endblock %}
     {% else %}
         <div class="container-fluid">{% block auth_content %}{% endblock %}</div>
     {% endif %}
     {% block extra_js %}
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- Bootstrap core JavaScript -->
+        <script src="https://code.jquery.com/jquery-4.0.0.min.js" integrity="sha256-OaVG6prZf4v69dPg6PhVattBXkcOWQB62pdZ3ORyrao=" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+
+        <!-- Additional Scripts -->
+        <script src="{% static 'contabilidade/js/custom.js' %}"></script>
+        <script src="{% static 'contabilidade/js/owl.js' %}"></script>
+        <script src="{% static 'contabilidade/js/slick.js' %}"></script>
+        <script src="{% static 'contabilidade/js/accordions.js' %}"></script>
+
+        <script language = "text/Javascript"> 
+        cleared[0] = cleared[1] = cleared[2] = 0; //set a cleared flag for each field
+        function clearField(t){                   //declaring the array outside of the
+        if(! cleared[t.id]){                      // function makes it static and global
+            cleared[t.id] = 1;  // you could use true and false, but that's more typing
+            t.value='';         // with more chance of typos
+            t.style.color='#fff';
+            }
+        }
+        </script>
         {% if user.is_authenticated %}
             <script src="{% static 'contabilidade/js/auto_logout.js' %}"></script>
         {% endif %}
     {% endblock %}
-</body>
+  </body>
 </html>
