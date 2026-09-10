@@ -26,6 +26,10 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import io
 
+class AboutView(TemplateView):
+    """Página sobre a família Moreira de Moraes"""
+    template_name = "about.html"
+
 #Autenticacao
 class CustomLoginView(LoginView):
     template_name = 'auth/login.html'
