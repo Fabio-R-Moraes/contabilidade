@@ -26,6 +26,10 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import io
 
+class ServicesView(TemplateView):
+    """Página sobre os serviços construídos"""
+    template_name = 'services.html'
+
 class AboutView(TemplateView):
     """Página sobre a família Moreira de Moraes"""
     template_name = "about.html"
