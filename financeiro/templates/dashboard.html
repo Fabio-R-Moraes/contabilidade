@@ -1,8 +1,22 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}Finanças Família M&M{% endblock %}
 {% block page_title %}Dashboard{% endblock %}
 {% block content %}
+    <!-- Page Content -->
+    <div class="page-heading header-text">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-12">
+            <h1>Relação de contas</h1>
+            <span>Rol mostrando todas as contas credoras e devedoras com seus saldos</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Tabela de Contas -->
+    <br>
     <div class="row g-3">
         <div class="col-lg-6">
             <div class="card">
@@ -14,7 +28,7 @@
                 </div>
                 <div class="card-body p-0">
                     <table class="table table-hover mb-0">
-                        <thead class="tabel-light">
+                        <thead class="table-light">
                             <tr>
                                 <th class="ps-3">Conta</th>
                                 <th class="text-end">Saldo Atual</th>
@@ -81,4 +95,7 @@
             </div>
         </div>
     </div>
+    <br>
+
+    {% include 'partials/rodape.html' %}  
 {% endblock %}
