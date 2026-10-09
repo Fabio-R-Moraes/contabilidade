@@ -2,6 +2,18 @@
 {% block title %}Lançamento #{{ object.pk }}{% endblock %}
 {% block page_title %}Lançamento: {{ object.descricao }}{% endblock %}
 {% block content %}
+    <!-- Page Content -->
+    <div class="page-heading header-text">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-12">
+            <h1>Detalhes de um lançamento</h1>
+            <span>Aqui poderão ser feitas as modificações ou até mesmo a exclusão de um lançamento.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <br>
     <div class="row g-3">
         <div class="col-lg-4">
             <div class="card">
@@ -76,4 +88,6 @@
             </div>
         </div>
     </div>
+    <br>
+    {% include 'partials/rodape.html' %}
 {% endblock %}

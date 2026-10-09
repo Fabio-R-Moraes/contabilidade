@@ -2,6 +2,18 @@
 {% block title %}{% if object %}Editar{% else %}Nova{% endif %} Conta Credora{% endblock %}
 {% block page_title %}{% if object %}Editar{% else %}Nova{% endif %} Conta Credora{% endblock %}
 {% block content %}
+    <!-- Page Content -->
+    <div class="page-heading header-text">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-12">
+            <h1>{% if not object %}Nova {% endif %}Conta Credora</h1>
+            <span>Aqui são {% if object %}editadas as {% else %}criadas as novas {% endif %}contas credoras.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <br>
     <div class="row justify-content-center">
         <div class="col-lg-6">
             <div class="card">
@@ -26,4 +38,7 @@
             </div>
         </div>
     </div>
+    <br>
+
+    {% include 'partials/rodape.html' %} 
 {% endblock %}

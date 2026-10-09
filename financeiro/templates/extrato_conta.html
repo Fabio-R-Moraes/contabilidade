@@ -10,6 +10,18 @@
     Extrato: {{ conta.nome }}
 {% endblock %}
 {% block content %}
+    <!-- Page Content -->
+    <div class="page-heading header-text">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-12">
+            <h1>Extrato da Conta</h1>
+            <span>Página com todas as informações de entrada e saída financeira de cada conta.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <br>
     <!-- Cabeçalho da Conta -->
     <div class="row g-3 mb-4">
         <div class="col-md-3">
@@ -193,6 +205,9 @@
             style="max-width: 100%;">
         </div>
     </div>
+    <br>
+
+    {% include 'partials/rodape.html' %}
 
     <script src="{% static 'contabilidade/js/extrato.js' %}?v=3"></script>
 {% endblock %}

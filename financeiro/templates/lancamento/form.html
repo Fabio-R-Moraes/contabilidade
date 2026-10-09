@@ -3,6 +3,18 @@
 {% block title %}{% if object %}Editar{% else %}Novo{% endif %} Lançamento{% endblock %}
 {% block page_title %}{% if object %}Editar{% else %}Novo{% endif %} Lançamento{% endblock %}
 {% block content %}
+    <!-- Page Content -->
+    <div class="page-heading header-text">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-12">
+            <h1>Novo lançamento contábil</h1>
+            <span>É aqui que os novos lançamentos são feitos.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <br>
     <form id="lancamento-form" method="post">
         {% csrf_token %}
         <div class="row g-3">
@@ -189,7 +201,10 @@
             </div>
         </div>
     </template>
+    <br>
+
+    {% include 'partials/rodape.html' %} 
 {% endblock %}
-{% block extra_js %}
-<script src="{% static 'contabilidade/js/scripts.js' %}?v=2"></script>
+{% block extra_js_part_2 %}
+    <script src="{% static 'contabilidade/js/scripts.js' %}?v=2"></script>
 {% endblock %}

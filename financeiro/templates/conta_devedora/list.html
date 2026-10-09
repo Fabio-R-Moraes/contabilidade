@@ -2,6 +2,18 @@
 {% block title %}Contas Devedoras{% endblock %}
 {% block page_title %}Contas Devedoras{% endblock %}
 {% block content %}
+    <!-- Page Content -->
+    <div class="page-heading header-text">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-12">
+            <h1>Relação de Contas Devedoras</h1>
+            <span>Rol mostrando todas as contas devedoras com seus saldos e uma breve explicação.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <br>
     <div class="d-flex justify-content-end mb-3">
         <a href="{% url 'financeiro:conta_devedora_create' %}" class="btn btn-danger">
             <i class="bi bi-plus-circle me-2"></i>Nova Conta Devedora
@@ -44,4 +56,7 @@
             </table>
         </div>
     </div>
+    <br>
+
+    {% include 'partials/rodape.html' %} 
 {% endblock %}

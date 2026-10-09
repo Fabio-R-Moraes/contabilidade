@@ -86,8 +86,12 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'financeiro:dashboard' %}">Dashboard</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="contact.html">Contato</a>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Contas</a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'financeiro:conta_credora_list' %}">Credoras</a></li>
+                            <li><a class="dropdown-item" href="{% url 'financeiro:conta_devedora_list' %}">Devedoras</a></li>
+                        </ul>
                     </li>
                 </ul>
             </div>

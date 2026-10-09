@@ -133,7 +133,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         document.getElementById('diferenca').textContent = 'R$ ' + diff.toFixed(2).replace('.', ',');
 
-        const statusCard = document.getElemmentById('balance-status');
+        const statusCard = document.getElementById('balance-status');
         const icon = document.getElementById('balance-icon');
         const difEl = document.getElementById('diferenca');
 
