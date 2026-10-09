@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Finanças Família M&M{% endblock %}
+{% block page_title %}Sobre{% endblock %}
+{% block content %}
+    <div class="page-heading header-text">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-12">
+            <h1>Sobre nossa família</h1>
+            <span>Nossa família foi formada a mais de 20 anos.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="more-info about-info">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-12">
+            <div class="more-info-content">
+              <div class="row">
+                <div class="col-md-6 align-self-center">
+                  <div class="right-content">
+                    <span>trabalhando em prol da família</span>
+                    <h2>Conheça um pouco mais <em>nossa família</em></h2>
+                    <p>Há mais de duas décadas, a família Moreira de Moraes constrói sua história sobre uma base de amor, cumplicidade e apoio mútuo. Movidos pelo altruísmo e pela dedicação diária, transformamos nosso lar em um espaço seguro e acolhedor para todos. 
+                    <br><br>Na criação dos filhos, priorizamos uma relação baseada na confiança, ensinando desde cedo que a maturidade exige responsabilidade e compromisso com as escolhas.</p>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="left-image">
+                    <img src="{% static 'contabilidade/images/about-image.jpg' %}" alt="">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="team">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-12">
+            <div class="section-heading">
+              <h2>Os membros da <em>família</em></h2>
+              <span>Um pouco mais sobre cada um.</span>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="team-item">
+              <img src="{% static 'contabilidade/images/mamae.jpg' %}" alt="Mamãe Rachel" width="360" height="250">
+              <div class="down-content">
+                <h4>Rachel</h4>
+                <span>Mamãe</span>
+                <p>Mãe e porto seguro da família, acolhe a todos e sempre tem uma palavra, um carinho e uma sugestão.</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="team-item">
+              <img src="{% static 'contabilidade/images/papai.jpg' %}" alt="Papai Fábio" width="360" height="250">
+              <div class="down-content">
+                <h4>Fábio</h4>
+                <span>Papai</span>
+                <p>Pai e provedor, trabalha muito e está sempre disponível para atender a todos com atenção e rapidez.</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="team-item">
+              <img src="{% static 'contabilidade/images/filho.jpg' %}" alt="Filhote Victor" width="360" height="250">
+              <div class="down-content">
+                <h4>Victor</h4>
+                <span>Filho</span>
+                <p>Menino de ouro, estudioso, trabalhador e amoroso. Está aprimorando seus dotes musicais com violino.</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="team-item">
+              <img src="{% static 'contabilidade/images/filha.jpg' %}" alt="Filhota Mariana" width="360" height="250">
+              <div class="down-content">
+                <h4>Mariana</h4>
+                <span>Filha</span>
+                <p>A princesa da casa, linda, amorosa e estudiosa, geniosa como o pai, mas de um coração de ouro.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% include 'partials/rodape.html' %}  
+{% endblock %}
