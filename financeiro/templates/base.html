@@ -77,21 +77,24 @@
                         <span class="sr-only">(current)</span>
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'financeiro:about' %}">Sobre</a>
-                    </li>  
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'financeiro:services' %}">Serviços</a>
-                    </li>                          
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'financeiro:dashboard' %}">Dashboard</a>
-                    </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Contas</a>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="{% url 'financeiro:conta_credora_list' %}">Credoras</a></li>
                             <li><a class="dropdown-item" href="{% url 'financeiro:conta_devedora_list' %}">Devedoras</a></li>
                         </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'financeiro:dashboard' %}">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'financeiro:lancamento_list' %}">Lançamentos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'financeiro:services' %}">Serviços</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'financeiro:about' %}">Sobre</a>
                     </li>
                 </ul>
             </div>

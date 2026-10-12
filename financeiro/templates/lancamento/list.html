@@ -2,6 +2,18 @@
 {% block title %}Lançamentos{% endblock %}
 {% block page_title %}Lançamentos{% endblock %}
 {% block content%}
+    <!-- Page Content -->
+    <div class="page-heading header-text">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-12">
+            <h1>Rol de lançamentos</h1>
+            <span>Aqui são mostrados todos os lançamentos contábeis.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <br>
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div class="d-flex gap-2">
             <a href="{% url 'financeiro:lancamento_list' %}" class="btn btn-sm {% if not tipo_atual %}btn-primary{% else %}btn btn-outline-secondary{% endif %}">Todos</a>
@@ -75,4 +87,6 @@
             </ul>
         </nav>
     {% endif %}
+    <br>
+    {% include 'partials/rodape.html' %}
 {% endblock %}

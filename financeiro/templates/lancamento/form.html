@@ -15,7 +15,7 @@
       </div>
     </div>
     <br>
-    <form id="lancamento-form" method="post">
+    <form id="lancamento-form" method="post" novalidate>
         {% csrf_token %}
         <div class="row g-3">
             <!-- Cabecalho do Lancamento -->
@@ -205,6 +205,7 @@
 
     {% include 'partials/rodape.html' %} 
 {% endblock %}
-{% block extra_js_part_2 %}
+{% block extra_js %}
+    {{ block.super }}
     <script src="{% static 'contabilidade/js/scripts.js' %}?v=2"></script>
 {% endblock %}
