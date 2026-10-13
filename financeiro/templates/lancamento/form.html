@@ -8,8 +8,8 @@
       <div class="container">
         <div class="row">
           <div class="col-md-12">
-            <h1>Novo lançamento contábil</h1>
-            <span>É aqui que os novos lançamentos são feitos.</span>
+            <h1>{% if object %}Editar{% else %}Novo{% endif %} lançamento contábil</h1>
+            <span>É aqui que os lançamentos são {% if object %}editados{% else %}criados{% endif %}.</span>
           </div>
         </div>
       </div>
@@ -132,7 +132,7 @@
                             {% endfor %}
                         </div>
 
-                        <button type="button" id="add-partida" class="btn btn-outline-primary mt-2">
+                        <button type="button" id="add-partida" class="filled-button mt-2">
                             <i class="bi bi-plus-circle me-2"></i>Adicionar Partida
                         </button>
                     </div>
@@ -141,10 +141,10 @@
 
             <!-- Botoes de acao -->
             <div class="col-12 d-flex gap-2 pb-3">
-                <button type="submit" class="btn btn-primary btn-lg" id="btn-salvar">
+                <button type="submit" class="filled-button" id="btn-salvar">
                     <i class="bi bi-check-circle me-2"></i>Salvar Lançamento
                 </button>
-                <a href="{% url 'financeiro:lancamento_list' %}" class="btn btn-outline-secondary btn-lg">Cancelar</a>
+                <a href="{% url 'financeiro:lancamento_list' %}" class="border-button">Cancelar</a>
             </div>
         </div>
     </form>

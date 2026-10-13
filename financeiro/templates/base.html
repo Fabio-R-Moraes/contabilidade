@@ -71,32 +71,44 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarResponsive">
-                <ul class="navbar-nav ml-auto">
-                    <li class="nav-item active">
-                        <a class="nav-link" href="{% url 'financeiro:index' %}">Home
-                        <span class="sr-only">(current)</span>
-                        </a>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Contas</a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{% url 'financeiro:conta_credora_list' %}">Credoras</a></li>
-                            <li><a class="dropdown-item" href="{% url 'financeiro:conta_devedora_list' %}">Devedoras</a></li>
-                        </ul>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'financeiro:dashboard' %}">Dashboard</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'financeiro:lancamento_list' %}">Lançamentos</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'financeiro:services' %}">Serviços</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'financeiro:about' %}">Sobre</a>
-                    </li>
-                </ul>
+                {% with url_name=request.resolver_match.url_name %}
+                    <ul class="navbar-nav ml-auto">
+                        <li class="nav-item {% if url_name == 'index' %}active{% endif %}">
+                            <a class="nav-link" href="{% url 'financeiro:index' %}">Home
+                                {% if url_name == 'index' %}<span class="sr-only">(current)</span>{% endif %}
+                            </a>
+                        </li>
+                        <li class="nav-item dropdown {% if url_name in 'conta_credora_list,conta_credora_create,conta_credora_update,conta_credora_delete,conta_devedora_list,conta_devedora_create,conta_devedora_update,conta_devedora_delete' %}active{% endif %}">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Contas
+                                {% if url_name in 'conta_credora_list,conta_credora_create,conta_credora_update,conta_credora_delete,conta_devedora_list,conta_devedora_create,conta_devedora_update,conta_devedora_delete' %}<span class="sr-only">(current)</span>{% endif %}
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item {% if 'conta_credora' in url_name %}active{% endif %}" href="{% url 'financeiro:conta_credora_list' %}">Credoras</a></li>
+                                <li><a class="dropdown-item {% if 'conta_devedora' in url_name %}active{% endif %}" href="{% url 'financeiro:conta_devedora_list' %}">Devedoras</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item {% if url_name == 'dashboard' %}active{% endif %}">
+                            <a class="nav-link" href="{% url 'financeiro:dashboard' %}">Dashboard
+                                {% if url_name == 'dashboard' %}<span class="sr-only">(current)</span>{% endif %}
+                            </a>
+                        </li>
+                        <li class="nav-item {% if 'lancamento' in url_name %}active{% endif %}">
+                            <a class="nav-link" href="{% url 'financeiro:lancamento_list' %}">Lançamentos
+                                {% if 'lancamento' in url_name %}<span class="sr-only">(current)</span>{% endif %}
+                            </a>
+                        </li>
+                        <li class="nav-item {% if url_name == 'services' %}active{% endif %}">
+                            <a class="nav-link" href="{% url 'financeiro:services' %}">Serviços
+                                {% if url_name == 'services' %}<span class="sr-only">(current)</span>{% endif %}
+                            </a>
+                        </li>
+                        <li class="nav-item {% if url_name == 'about' %}active{% endif %}">
+                            <a class="nav-link" href="{% url 'financeiro:about' %}">Sobre
+                                {% if url_name == 'about' %}<span class="sr-only">(current)</span>{% endif %}
+                            </a>
+                        </li>
+                    </ul>
+                {% endwith %}
             </div>
             </div>
         </nav>

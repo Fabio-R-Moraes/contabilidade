@@ -22,7 +22,7 @@
                 <a href="?tipo={{ tipo }}" class="btn btn-sm {% if tipo_atual %}btn-primary{% else %}btn btn-outline-secondary{% endif %}">{{ label }}</a>
             {% endfor %}
         </div>
-        <a href="{% url 'financeiro:lancamento_create' %}" class="btn btn-primary">
+        <a href="{% url 'financeiro:lancamento_create' %}" class="filled-button">
             <i class="bi bi-plus-circle me-2"></i>Novo Lançamento
         </a>
     </div>
