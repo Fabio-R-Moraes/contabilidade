@@ -7,6 +7,7 @@ app_name = 'financeiro'
 urlpatterns = [
     path('about/', views.AboutView.as_view(), name='about'),
     path('services/', views.ServicesView.as_view(), name='services'),
+    path('contato/', views.ContatoView.as_view(), name='contato'),
 
     #Auth
     path('', views.IndexView.as_view(),name='index'),

@@ -25,6 +25,11 @@ import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import io
+from django.core.mail import send_mail
+from django.conf import settings
+from django.views import View
+from django.utils.html import escape
+import re
 
 class ServicesView(TemplateView):
     """Página sobre os serviços construídos"""
@@ -749,3 +754,49 @@ class ExtratoContaDevedoraView(LoginRequiredMixin, TemplateView):
         ctx['meses_choices'] = MESES_PT
         
         return ctx
+
+class ContatoView(View):
+    #Processa o formulário de contato do rodapé via POST
+    def post(self, request, *args, **kwargs):
+        name = request.POST.get('name', '').strip()
+        email = request.POST.get('email', '').strip()
+        message = request.POST.get('message', '').strip()
+
+        #Validação manual - evita dependência de EmailField
+        erros = []
+
+        if not name:
+            erros.append('Nome é obrigatório!!!')
+        if not email or not re.match(r'^[^@]+@[^@]+\.[^@]+$', email):
+            erros.append('E-mail inválido!!!')
+        if not message:
+            erros.append('Mensagem é obrigatória!!!')
+
+        if erros:
+            return JsonResponse({
+                'status': 'error',
+                'message': ' '.join(erros),
+            }, status=400)
+
+        try:
+            send_mail(
+                    subject = f'[Finanças Familiar] Mensagem de {escape(name)}',
+                    message = (
+                        f'Nome: {name}\n'
+                        f'E-mail: {email}\n\n'
+                        f'Mensagem: \n{message}'
+                    ),
+                    from_email = settings.DEFAULT_FROM_EMAIL,
+                    recipient_list = [settings.CONTACT_EMAIL],
+                    fail_silently = False,
+            )
+
+            return JsonResponse({
+                'status': 'ok',
+                'message': 'Mensagem enviada com sucesso!!!'
+            })
+        except Exception as e:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Erro ao enviar... Tente novamente...'
+            }, status=500)
