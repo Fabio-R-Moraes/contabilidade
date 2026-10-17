@@ -386,7 +386,7 @@ class LancamentoCreateView(LoginRequiredMixin, CreateView):
     model = Lancamento
     form_class = LancamentoForm
     template_name = 'lancamento/form.html'
-    success_url = reverse_lazy('financeiro:lancamento_list')
+    success_url = reverse_lazy('financeiro:index')
     login_url = reverse_lazy('financeiro:login')
 
     def get_context_data(self, **kwargs):
@@ -424,7 +424,7 @@ class LancamentoUpdateView(LoginRequiredMixin, UpdateView):
     model = Lancamento
     form_class = LancamentoForm
     template_name = 'lancamento/form.html'
-    success_url = reverse_lazy('financeiro:lancamento_list')
+    success_url = reverse_lazy('financeiro:index')
     login_url = reverse_lazy('financeiro:login')
 
     def get_queryset(self):
@@ -465,7 +465,7 @@ class LancamentoUpdateView(LoginRequiredMixin, UpdateView):
 class LancamentoDeleteView(LoginRequiredMixin, DeleteView):
     model = Lancamento
     template_name = 'lancamento/confirm_delete.html'
-    success_url = reverse_lazy('financeiro:lancamento_list')
+    success_url = reverse_lazy('financeiro:index')
     login_url = reverse_lazy('financeiro:login')
 
     def get_queryset(self):

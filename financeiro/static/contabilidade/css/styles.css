@@ -289,21 +289,28 @@ body {
 
 /* Extrato de conta */
 .extrato-table {
-    font-size: .875rem;;
+    font-size: .875rem;
+    font-family: 'Poppins', sans-serif;
 }
 
 .extrato-table th {
-    font-size: .75rem;
+    font-size: .72rem;
     text-transform: uppercase;
-    letter-spacing: .05em;
+    letter-spacing: .06em;
+    background: #a4c639;
+    color: #fff;
+    border: none;
+    padding: 10px 12px;
 }
 
 .row-data-header td {
-    background: var(--cor-primaria);
-    color: var(--branco);
-    font-weight: 700;
+    background: #1e1e1e;
+    color: var(--branco) !important;
+    font-weight: 600;
     padding: .4rem .75rem;
     font-size: .8rem;
+    font-family: 'Poppins', sans-serif;
+    letter-spacing: .03em;
 }
 
 .row-subtotal td {
@@ -312,7 +319,7 @@ body {
     font-weight: 700;
     padding: .35rem .75rem;
     font-size: .8rem;
-    border-top: 2px solid #dc3545;
+    border-top: 2px solid #a4c639;
 }
 
 .row-subtotal.negativo td {
@@ -322,11 +329,68 @@ body {
 }
 
 .row-total td {
-    background: #0f2540;
+    background: #1e1e1e;
     color: var(--branco);
     font-weight: 700;
     padding: .5rem .75rem;
-    font-size: .85rem;
+    font-size: .82rem;
+    font-family: 'Poppins', sans-serif;
+    letter-spacing: .03em;
+}
+
+.card-header {
+    background-color: #1e1e1e;
+    color: var(--branco);
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: .3px;
+    border: none;
+}
+
+.card-header i {
+    color: #a4c639;
+}
+
+.card-header .btn-outline-secondary {
+    color: #a4c639;
+    border-color: #a4c639;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 30px;
+    transition: all .3s;
+}
+
+.card-header .btn-outline-secondary:hover {
+    border-color: #a4c639;
+    color: var(--branco);
+}
+
+.card-header .btn-primary,
+.card-header button[type="submit"] {
+    background-color: #a4c639;
+    border-color: #a4c639;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    border-radius: 30px;
+    transition: all .3s;
+}
+
+.card-header .btn-primary:hover,
+.card-header button[type="submit"]:hover {
+    background-color: var(--branco);
+    color: #a4c639;
+}
+
+.extrato-table tbody tr:hover td {
+    background-color: rgba(164, 198, 57, .07);
+}
+
+.row-data-header:hover td,
+.row-subtotal:hover td,
+.row-total:hover td {
+    background-color: unset;
 }
 
 .check-col {
@@ -348,7 +412,7 @@ input.check-lancamento {
     width: 15px;
     height: 15px;
     cursor: pointer;
-    accent-color: #1a3a5c;
+    accent-color: #a4c639;
 }
 
 .badge-dc {
