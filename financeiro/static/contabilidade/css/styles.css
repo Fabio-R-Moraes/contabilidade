@@ -304,7 +304,7 @@ body {
 }
 
 .row-data-header td {
-    background: #1e1e1e;
+    background: #1e1e1e !important;
     color: var(--branco) !important;
     font-weight: 600;
     padding: .4rem .75rem;
