@@ -8,6 +8,7 @@ urlpatterns = [
     path('about/', views.AboutView.as_view(), name='about'),
     path('services/', views.ServicesView.as_view(), name='services'),
     path('contato/', views.ContatoView.as_view(), name='contato'),
+    path('relatorio/', views.RelatorioAnaliticoView.as_view(), name='relatorio'),
 
     #Auth
     path('', views.IndexView.as_view(),name='index'),

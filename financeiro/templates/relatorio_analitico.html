@@ -1,0 +1,205 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Finanças Família M&M{% endblock %}
+{% block page_title %}Relatório{% endblock %}
+{% block content %}
+    <!-- Page Content -->
+    <div class="page-heading header-text">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-12">
+            <h1>Relatório Analítico</h1>
+            <span>Consulta sumarizada por período - Despesas Fixas, variáveis e Supérfluas.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <br>
+    <div class="container-fluid px-4 relatorio-wrap">
+        <!-- Filtro de Período -->
+        <form method="get" class="filtro-card">
+            <div>
+                <label>Data Inicial:</label>
+                <input type="date" name="data_ini" value="{{ data_ini|date:'Y-m-d' }}">
+            </div>
+            <div>
+                <label>Data Final:</label>
+                <input type="date" name="data_fim" value="{{ data_fim|date:'Y-m-d' }}">
+            </div>
+            <button type="submit"><i class="bi bi-search me-1"></i>Consultar</button>
+            <span class="periodo-label">
+                Período: {{ data_ini|date:"d-m-Y" }} a {{ data_fim|date:"d-m-Y" }}.
+            </span>
+        </form>
+
+        <!-- Despesas Fixas -->
+        <div class="tipo-section">
+            <div class="tipo-header">
+                <span><i class="bi bi-pin-angle-fill me-2" style="color:#a4c639"></i>Despesas Fixas</span>
+                <span class="badge-tipo" style="background: #9b59b6;">FIXA</span>
+            </div>
+            <table class="tm-table">
+                <thead>
+                    <tr>
+                        <th style="width: 120px;">Data</th>
+                        <th style="width: 80px;">D/C</th>
+                        <th>Descrição</th>
+                        <th class="text-end" style="width: 140px;">Crédito</th>
+                        <th class="text-end" style="width: 140px;">Débito</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for l in dados.FIXA.lancamentos %}
+                        <tr>
+                            <td>{{ l.data|date:"d-m-Y" }}</td>
+                            <td>
+                                {% if l.credito %}
+                                    <span class="badge bg-success" style="font-size: .7rem;">C</span>
+                                {% endif %}
+                                {% if l.debito %}
+                                    <span class="badge bg-danger" style="font-size: .7rem;">D</span>
+                                {% endif %}
+                            </td>
+                            <td><a href="{% url 'financeiro:lancamento_detail' l.pk %}">{{l.id}}</a> - {{ l.descricao }}</td>
+                            <td class="text-end saldo-credora">
+                                {% if l.credito %}R$ {{ l.credito|brl }}{% else %}-{% endif %}
+                            </td>
+                            <td class="text-end saldo-devedora">
+                                {% if l.debito %}R$ {{ l.debito|brl }}{% else %}-{% endif %}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="5" class="text-center text-muted py-3">Nenhum lançamento  no período</td></tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3">Crédito: R$ {{ dados.FIXA.total_credito|brl }} &nbsp;|&nbsp; Débito: R$ {{ dados.FIXA.total_debito|brl }}</td>
+                        <td class="text-end" style="color: #a4c639;">R$ {{ dados.FIXA.total_credito|brl }}</td>
+                        <td class="text-end" style="color: #e74c3c;">R$ {{ dados.FIXA.total_debito|brl }}</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <!-- Despesas Variáveis -->
+        <div class="tipo-section">
+            <div class="tipo-header">
+                <span><i class="bi bi-arrow-left-right me-2" style="color:#a4c639"></i>Despesas Variáveis</span>
+                <span class="badge-tipo" style="background: #e67e22;">VARIÁVEL</span>
+            </div>
+            <table class="tm-table">
+                <thead>
+                    <tr>
+                        <th style="width: 120px;">Data</th>
+                        <th style="width: 80px;">D/C</th>
+                        <th>Descrição</th>
+                        <th class="text-end" style="width: 140px;">Crédito</th>
+                        <th class="text-end" style="width: 140px;">Débito</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for l in dados.VARIAVEL.lancamentos %}
+                        <tr>
+                            <td>{{ l.data|date:"d-m-Y" }}</td>
+                            <td>
+                                {% if l.credito %}
+                                    <span class="badge bg-success" style="font-size: .7rem;">C</span>
+                                {% endif %}
+                                {% if l.debito %}
+                                    <span class="badge bg-danger" style="font-size: .7rem;">D</span>
+                                {% endif %}
+                            </td>
+                            <td><a href="{% url 'financeiro:lancamento_detail' l.pk %}">{{l.id}}</a> - {{ l.descricao }}</td>
+                            <td class="text-end saldo-credora">
+                                {% if l.credito %}R$ {{ l.credito|brl }}{% else %}-{% endif %}
+                            </td>
+                            <td class="text-end saldo-devedora">
+                                {% if l.debito %}R$ {{ l.debito|brl }}{% else %}-{% endif %}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="5" class="text-center text-muted py-3">Nenhum lançamento  no período</td></tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3">Crédito: R$ {{ dados.FIXA.total_credito|brl }} &nbsp;|&nbsp; Débito: R$ {{ dados.VARIAVEL.total_debito|brl }}</td>
+                        <td class="text-end" style="color: #a4c639;">R$ {{ dados.VARIAVEL.total_credito|brl }}</td>
+                        <td class="text-end" style="color: #e74c3c;">R$ {{ dados.VARIAVEL.total_debito|brl }}</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        
+        <!-- Despesas Supérfluas -->
+        <div class="tipo-section">
+            <div class="tipo-header">
+                <span><i class="bi bi-cart-x me-2" style="color:#a4c639"></i>Despesas Supérfluas</span>
+                <span class="badge-tipo" style="background: #e74c3c;">SUPÉRFLUA</span>
+            </div>
+            <table class="tm-table">
+                <thead>
+                    <tr>
+                        <th style="width: 120px;">Data</th>
+                        <th style="width: 80px;">D/C</th>
+                        <th>Descrição</th>
+                        <th class="text-end" style="width: 140px;">Crédito</th>
+                        <th class="text-end" style="width: 140px;">Débito</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for l in dados.SUPERFLUA.lancamentos %}
+                        <tr>
+                            <td>{{ l.data|date:"d-m-Y" }}</td>
+                            <td>
+                                {% if l.credito %}
+                                    <span class="badge bg-success" style="font-size: .7rem;">C</span>
+                                {% endif %}
+                                {% if l.debito %}
+                                    <span class="badge bg-danger" style="font-size: .7rem;">D</span>
+                                {% endif %}
+                            </td>
+                            <td><a href="{% url 'financeiro:lancamento_detail' l.pk %}">{{l.id}}</a> - {{ l.descricao }}</td>
+                            <td class="text-end saldo-credora">
+                                {% if l.credito %}R$ {{ l.credito|brl }}{% else %}-{% endif %}
+                            </td>
+                            <td class="text-end saldo-devedora">
+                                {% if l.debito %}R$ {{ l.debito|brl }}{% else %}-{% endif %}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="5" class="text-center text-muted py-3">Nenhum lançamento  no período</td></tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3">Crédito: R$ {{ dados.FIXA.total_credito|brl }} &nbsp;|&nbsp; Débito: R$ {{ dados.SUPERFLUA.total_debito|brl }}</td>
+                        <td class="text-end" style="color: #a4c639;">R$ {{ dados.SUPERFLUA.total_credito|brl }}</td>
+                        <td class="text-end" style="color: #e74c3c;">R$ {{ dados.SUPERFLUA.total_debito|brl }}</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <!-- Total Geral -->
+        <div class="total-geral">
+            <div>
+                <div class="label">Total de Crédito</div>
+                <div class="valor saldo-credora">R$ {{ total_geral_credito|brl }}</div>
+            </div>
+            <div>
+                <div class="label">Total de Débito</div>
+                <div class="valor saldo-devedora">R$ {{ total_geral_debito|brl }}</div>
+            </div>
+            <div style="margin-left: auto;">
+                <div class="label">Saldo Geral</div>
+                <div class="valor saldo {% if saldo_geral >= 0 %}saldo-credora{% else %}saldo-devedora{% endif %}">
+                    R$ {{ saldo_geral|brl }}
+                </div>
+            </div>
+        </div>
+        <br>
+    {% include 'partials/rodape.html' %} 
+    </div> 
+{% endblock %}

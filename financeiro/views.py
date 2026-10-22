@@ -12,7 +12,7 @@ from django.db import transaction
 from django.db.models import Sum, Case, When, Value, DecimalField
 from decimal import Decimal
 import datetime
-from .models import ContaCredora, ContaDevedora, Lancamento
+from .models import ContaCredora, ContaDevedora, Lancamento, Partida
 from .forms import (
     ContaCredoraForm, ContaDevedoraForm,
     LancamentoForm, PartidaFormSet
@@ -800,3 +800,69 @@ class ContatoView(View):
                 'status': 'error',
                 'message': 'Erro ao enviar... Tente novamente...'
             }, status=500)
+class RelatorioAnaliticoView(LoginRequiredMixin, TemplateView):
+    """Relatório analítico por período, agrupado por tipo de despesa"""
+    template_name = 'relatorio_analitico.html'
+    login_url = reverse_lazy('financeiro:login')
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        user = self.request.user
+        hoje = datetime.date.today()
+
+        #Periodo padrão: Último mês
+        data_ini_str = self.request.GET.get('data_ini', '')
+        data_fim_str = self.request.GET.get('data_fim', '')
+
+        try:
+            data_ini = datetime.date.fromisoformat(data_ini_str) if data_ini_str else hoje.replace(day=1)
+            data_fim = datetime.date.fromisoformat(data_fim_str) if data_fim_str else hoje
+        except ValueError:
+            data_ini = hoje.replace(day=1)
+            data_fim = hoje
+
+        def _lancamentos_tipo(tipo):
+            """Retorna lançamentos de um tipo com totais de crédito e débito"""
+            qs = (
+                Lancamento.objects.filter(
+                    usuario=user,
+                    tipo_despesa=tipo,
+                    data__range=(data_ini, data_fim),
+                ).annotate(
+                    #Crédito em conta credora, ouseja, apenas enrrada de dinheiro.
+                    credito = Sum(Case(When(
+                        partidas__tipo='CREDITO', partidas__conta_credora__isnull=False, then='partidas__valor'
+                    ), output_field=DecimalField())),
+                    #Débito em conta credora, ou seja, dinheiro saindo.
+                    debito = Sum(Case(When(
+                        partidas__tipo='DEBITO', partidas__conta_credora__isnull=False, then='partidas__valor'
+                    ), output_field=DecimalField())),
+                ).distinct().order_by('data', 'criado_em')
+            )
+
+            total_credito = sum(l.credito or Decimal('0') for l in qs)
+            total_debito = sum(l.debito or Decimal('0') for l in qs)
+
+            return {
+                'lancamentos': qs,
+                'total_credito': total_credito,
+                'total_debito': total_debito,
+            }
+
+        tipos = ['FIXA', 'VARIAVEL', 'SUPERFLUA']
+        dados = {tipo: _lancamentos_tipo(tipo) for tipo in tipos}
+
+        total_geral_credito = sum(dados[t]['total_credito'] for t in tipos)
+        total_geral_debito = sum(dados[t]['total_debito'] for t in tipos)
+
+        ctx.update({
+            'data_ini': data_ini,
+            'data_fim': data_fim,
+            'dados': dados,
+            'total_geral_credito': total_geral_credito,
+            'total_geral_debito': total_geral_debito,
+            'saldo_geral': total_geral_credito - total_geral_debito,
+        })
+
+        return ctx
+
