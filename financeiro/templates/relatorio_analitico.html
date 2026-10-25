@@ -32,6 +32,19 @@
             </span>
         </form>
 
+        <!-- Cabeçalho visível apenas na impressão -->
+        <div class="print-header">
+            <h2>Finanças Família M&M - Relatório Analítico</h2>
+            <p>Período: {{ data_ini|date:"d-m-Y" }} a {{ data_fim|date:"d-m-Y" }}.</p>
+        </div>
+
+        <!-- Botão imprimir -->
+        <div class="d-flex justify-content-end mb-3 no-print">
+            <button onclick="window.print()" class="btn-imprimir filled-button">
+                <i class="bi bi-printer me-2"></i>Imprimir / Salvar PDF
+            </button>
+        </div>
+
         <!-- Despesas Fixas -->
         <div class="tipo-section">
             <div class="tipo-header">
@@ -124,7 +137,7 @@
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td colspan="3">Crédito: R$ {{ dados.FIXA.total_credito|brl }} &nbsp;|&nbsp; Débito: R$ {{ dados.VARIAVEL.total_debito|brl }}</td>
+                        <td colspan="3">Crédito: R$ {{ dados.VARIAVEL.total_credito|brl }} &nbsp;|&nbsp; Débito: R$ {{ dados.VARIAVEL.total_debito|brl }}</td>
                         <td class="text-end" style="color: #a4c639;">R$ {{ dados.VARIAVEL.total_credito|brl }}</td>
                         <td class="text-end" style="color: #e74c3c;">R$ {{ dados.VARIAVEL.total_debito|brl }}</td>
                     </tr>
@@ -174,7 +187,7 @@
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td colspan="3">Crédito: R$ {{ dados.FIXA.total_credito|brl }} &nbsp;|&nbsp; Débito: R$ {{ dados.SUPERFLUA.total_debito|brl }}</td>
+                        <td colspan="3">Crédito: R$ {{ dados.SUPERFLUA.total_credito|brl }} &nbsp;|&nbsp; Débito: R$ {{ dados.SUPERFLUA.total_debito|brl }}</td>
                         <td class="text-end" style="color: #a4c639;">R$ {{ dados.SUPERFLUA.total_credito|brl }}</td>
                         <td class="text-end" style="color: #e74c3c;">R$ {{ dados.SUPERFLUA.total_debito|brl }}</td>
                     </tr>
