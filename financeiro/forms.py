@@ -76,7 +76,8 @@ class LancamentoForm(forms.ModelForm):
             'data': forms.DateInput(attrs={
                 'class': 'form-control',
                 'type': 'date'
-            }),
+            },
+            format = '%Y-%m-%d',),
             'tipo_despesa': forms.Select(attrs={'class': 'form-select'}),
             'observacoes': forms.Textarea(attrs={
                 'class': 'form-control',

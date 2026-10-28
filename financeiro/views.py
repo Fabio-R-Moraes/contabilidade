@@ -389,6 +389,12 @@ class LancamentoCreateView(LoginRequiredMixin, CreateView):
     success_url = reverse_lazy('financeiro:index')
     login_url = reverse_lazy('financeiro:login')
 
+    def get_initial(self):
+        initial = super().get_initial()
+        initial['data'] = datetime.date.today()
+
+        return initial
+
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
 
